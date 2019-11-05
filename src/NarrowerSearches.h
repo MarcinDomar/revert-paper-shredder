@@ -7,7 +7,7 @@ class NarrowerSearches
 	using CoumnsPermutation = std::vector<int>;
 
 	const VectorOrRows & inputData;
-	const RatingGiver& rater;
+	const CombinedRaingGiver<4>& rater;
 	const size_t rows;
 	const size_t cols;
 	const InitializerOfIndex2Permutaion indexNexter;
@@ -30,7 +30,7 @@ class NarrowerSearches
 	std::vector<Index2Perm> getSortedIndexes() {
 		std::vector<unsigned int > positions(cols2_scores.size());
 		auto indexes=getAllIndexes();
-		std::vector<Index2Perm> retIndexes(2 * indexes.size());
+		std::vector<Index2Perm> retIndexes(8 * indexes.size());
 
 		for( unsigned int i=0; i< positions.size();i++)	positions[i] = i;
 		std::sort(positions.begin(), positions.end(), [this](auto & p1, auto &p2) {
@@ -46,7 +46,7 @@ class NarrowerSearches
 	std::vector<PaperSide> getPapers(const std::vector<CoumnsPermutation> & colesPermutatios)const ;
 
 public:
-	NarrowerSearches(const VectorOrRows & data, const  RatingGiver &rater):inputData(data), rater(rater), rows(data.size()), cols(data.front().size()), indexNexter(data.front().size())
+	NarrowerSearches(const VectorOrRows & data, const   CombinedRaingGiver<4> &rater):inputData(data), rater(rater), rows(data.size()), cols(data.front().size()), indexNexter(data.front().size())
 	{
 		cols2_scores = std::vector<unsigned long long >(indexNexter.howManyPermutaion(),0ull);
 		buildScores();

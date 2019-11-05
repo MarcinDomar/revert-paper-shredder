@@ -3,21 +3,6 @@
 #include <fstream>
 #include <string.h>
 
-RatingGiver getRatingGiver(const std::string filePath) {
-	RatingGiver result;
-	std::string word;
-
-	// here we should add try-catch block
-	std::ifstream file;
-	file.open(filePath, std::ios_base::in);
-	while (file.good())
-	{
-		file >> word;
-		result.addWord(word);
-	}
-	file.close();
-	return result;
-}
 
 
 void RatingGiver::addWord(const std::string & word) {
@@ -74,7 +59,7 @@ unsigned int RatingForPageGiver::getScore(const PaperSide & page) const
 
 		while (token != nullptr)
 		{
-			result += set_of_words.count(token);
+			result += set_of_words.count(token)*strlen(token);
 			token = strtok_s(nullptr, delim.c_str(), &next_token);
 		}
 	}

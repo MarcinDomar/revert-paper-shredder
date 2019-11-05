@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 	auto inputData = getVectorOrRows(argv[1]);
 	std::cout << "input readed " << std::endl;
 
-	RatingGiver ratingGiverForSibling2Leters= getRatingGiver(argv[2]);
+	auto ratingGiverForSibling2Leters= getRatingGiver<CombinedRaingGiver<4>>(argv[2]);
 	std::cout << "I've got RatingGiver for Sibling two Letters readed " << std::endl;
 	
 	auto ratingForPageGiver = getRatingGiverForPage(argv[2]);
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 	
 	NarrowerSearches narrowerSearches(inputData, ratingGiverForSibling2Leters);
 	std::cout << "NarrowerSearches initialized" << std::endl;
-	auto sugestedPages = narrowerSearches.getBestSugestions(10000);
+	auto sugestedPages = narrowerSearches.getBestSugestions(100000);
 	std::cout << "I've got "<<sugestedPages.size()<<"suggested pages   " << std::endl;
 
 	std::vector<int> scores(sugestedPages.size());
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 		std::cout << indexes[i]<< "  ";
 	std::cout << std::endl;
 	if (indexes.size()) {
-		for (int i = indexes.size() - 30; i < indexes.size();i++) {
+		for (int i = 0/*indexes.size()*/ ; i < indexes.size();i++) {
 			int a = indexes[i];
 			auto &bestPage = sugestedPages[a];
 			for (auto & row : bestPage)
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 
 		for (int i = 0; i < indexes.size(); i++)
 		{
-			std::cout << "<" << scores[indexes[i]] << ">";
+			std::cout << "<" <<indexes[i] <<" " << scores[indexes[i]] << ">";
 		}
 		std::cout << std::endl;
 
@@ -109,5 +109,5 @@ int main(int argc, char *argv[])
 
 
 
-	return 0;
+		return 0;
 }

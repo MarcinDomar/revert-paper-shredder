@@ -10,16 +10,16 @@
 void NarrowerSearches::buildScores() {
 	
 	auto worker = [this](int dist_from_frist, int size) {
-		TwoChars tw;
+		std::array<char,4>  tw;
 		Index2Perm index = indexNexter.getNs(dist_from_frist);
 		for (int i = 0; i < size; i++) {
 			auto & score = cols2_scores[i + dist_from_frist];
 			for (int j = 0; j < inputData.size(); j++)
 			{
-				tw[0]= inputData[j][ index[0]][1];
-				tw[1] = inputData[j][index[1]][0];
-				if (!isalnum(tw[0])) tw[0] = 0;
-				if (!isalnum(tw[1])) tw[1] = 0;
+				auto &left = inputData[j][ index[0]];
+				auto &right = inputData[j][index[1]];
+				std::copy(left.begin(), left.end(), tw.begin());
+				std::copy(right.begin(), right.end(), tw.begin()+2);
 				score += rater.getScore(tw);
 			}
 			indexNexter.initToNext(index);

@@ -6,6 +6,8 @@
 
 using ListOfRows = std::list < std::list<std::string>>;
 using TwoChars = std::array<char, 2>;
+using ThreeChars = std::array<char, 3>;
+using FourChars = std::array<char, 4>;
 using VectorOrRows = std::vector<std::vector<TwoChars>>;
 using PaperSide = std::vector<std::string>;
 
