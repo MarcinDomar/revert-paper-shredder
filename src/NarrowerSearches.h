@@ -30,13 +30,16 @@ class NarrowerSearches
 	std::vector<Index2Perm> getSortedIndexes() {
 		std::vector<unsigned int > positions(cols2_scores.size());
 		auto indexes=getAllIndexes();
-		auto retIndexes = indexes;
+		std::vector<Index2Perm> retIndexes(2 * indexes.size());
+
 		for( unsigned int i=0; i< positions.size();i++)	positions[i] = i;
 		std::sort(positions.begin(), positions.end(), [this](auto & p1, auto &p2) {
 			return cols2_scores[p1] > cols2_scores[p2]; });
 		for (int i = 0; i < positions.size(); i++)	{
 			retIndexes[i] = indexes[positions[i]];
 		}
+		std::copy(indexes.begin(), indexes.end(), retIndexes.begin());
+		std::copy(retIndexes.begin(), retIndexes.end(), retIndexes.begin()+indexes.size());
 		return retIndexes;
 	}
 	

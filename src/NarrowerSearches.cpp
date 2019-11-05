@@ -18,6 +18,8 @@ void NarrowerSearches::buildScores() {
 			{
 				tw[0]= inputData[j][ index[0]][1];
 				tw[1] = inputData[j][index[1]][0];
+				if (!isalnum(tw[0])) tw[0] = 0;
+				if (!isalnum(tw[1])) tw[1] = 0;
 				score += rater.getScore(tw);
 			}
 			indexNexter.initToNext(index);
