@@ -39,7 +39,7 @@ class NarrowerSearches
 			retIndexes[i] = indexes[positions[i]];
 		}
 		std::copy(indexes.begin(), indexes.end(), retIndexes.begin());
-		std::copy(retIndexes.begin(), retIndexes.end(), retIndexes.begin()+indexes.size());
+		std::copy(retIndexes.begin(), retIndexes.begin()+indexes.size(), retIndexes.begin()+indexes.size());
 		return retIndexes;
 	}
 	

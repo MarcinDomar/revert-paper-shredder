@@ -27,16 +27,20 @@ void NarrowerSearches::buildScores() {
 		return 0;
 	};
 	using Future = std::future<int>;
-	std::list<Future> futures(std::thread::hardware_concurrency());
+	std::list<Future> futures;
 	
-	int size = indexNexter.howManyPermutaion() / futures.size();
+	int size = indexNexter.howManyPermutaion() / std::thread::hardware_concurrency();
 	int i = 0;
-	for(i; i < futures.size()-1;i++ )
+	for (i; i < std::thread::hardware_concurrency()-1; i++)
+	{
 		futures.push_back(std::async(std::launch::async, worker, i*size, size));
+
+	}
 	futures.back() = std::async(std::launch::async, worker, i*size,indexNexter.howManyPermutaion()  - size*i );
+
 	while (futures.size()) {
-		if (futures.front().get())
-			futures.pop_front();
+		futures.front().get();
+		futures.pop_front();
 	}
 
 }

@@ -16,13 +16,23 @@ public:
 	Index2Perm getFirst()const { return{ 0,1 }; }
 	InitializerOfIndex2Permutaion(int size_of_set) :size_of_set(size_of_set) {}
 	bool initToNext(Index2Perm & index)const {
-		if (index[0] == size_of_set - 1)
-			return false;
 		index[1]++;
-		if (index[1] == size_of_set) {
+		if (index[1] == index[0])
+		{
+			index[1]++;
+			if (index[1] == size_of_set)
+			{
+				index[0] = 0;
+				index[1] = 1;
+				return false;
+			}
+		}
+		else if  (index[1] == size_of_set )
+		{
 			index[0]++;
 			index[1] = 0;
 		}
+		return true;
 	}
 	Index2Perm  getNs(int dist) const{
 		int first = dist / (size_of_set - 1);
@@ -30,7 +40,7 @@ public:
 
 		return{ first,(first > second) ? second : second + 1 };
 	}
-	unsigned int howManyPermutaion()const { return (size_of_set - 1)*(size_of_set-1); }
+	unsigned int howManyPermutaion()const { return (size_of_set )*(size_of_set-1); }
 };
 
 

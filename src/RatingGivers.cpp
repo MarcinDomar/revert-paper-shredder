@@ -30,7 +30,7 @@ void RatingGiver::addWord(const std::string & word) {
 			tw[1] = word[i + 1];
 			add(tw);
 		}
-		tw[0] = 0;
+	/*	tw[0] = 0;
 		tw[1] = word[0];
 		add(tw);
 
@@ -40,7 +40,7 @@ void RatingGiver::addWord(const std::string & word) {
 		tw[0] = word.back();
 		tw[1] = 0;
 		add(tw);
-	}
+	*/}
 }
 
 
