@@ -3,7 +3,7 @@
 #include <map>
 #include <set>
 #include <cstdio>
-
+#include <fstream>
 namespace std {
 	template <>
 	struct hash<TwoChars>
@@ -23,13 +23,28 @@ namespace std {
 		{
 			using std::size_t;
 			using std::hash;
-			unsigned int val = ((unsigned int )k.back() << 24) +
-				((unsigned int)k.back() << 16) +
-				((unsigned int)k.back() << 8) +
+			unsigned int val = ((unsigned int )k[3] << 24) +
+				((unsigned int)k[2] << 16) +
+				((unsigned int)k[1] << 8) +
 				k.front();
 			return std::hash<unsigned int >()(val);
 		}
 	};
+	template <>
+	struct hash<std::array<char, 6> >
+	{
+		std::size_t operator()(const std::array<char, 6>& k) const
+		{
+			using std::size_t;
+			using std::hash;
+			unsigned int val = ((unsigned int)k[3] << 24) +
+				((unsigned int)k[2] << 16) +
+				((unsigned int)k[1] << 8) +
+				k.front();
+			return std::hash<unsigned int >()(val) ^ std::hash<unsigned int>()( ((unsigned int)k[5]<<8 ) +	((unsigned int)k[4]) );
+		}
+	};
+
 
 }
 class RatingForPageGiver {
@@ -84,7 +99,7 @@ public:
 		for (; off < n2 && !isalpha(key[off]); off++);
 		int j = off;
 		for (; j < n2 && isalpha(key[j]); j++) ret[j - off] = key[j];
-		int size = off - j;
+		int size =   j-off;
 		for (j = size; j< n2; j++)
 			ret[j] = 0;
 		return size;
@@ -129,11 +144,11 @@ public:
 		for (; i < size; i++) key[i] = word[off + i];
 		for (; i < n2; i++)key[i] = 0;
 	}
-	void add(std::unordered_map<Key, unsigned int > &dict ,const Key & key) {
-		std::unordered_map<Key, unsigned int > :: value_type e{ key,1 };
-		auto it_bool = dict.insert(e);
-		if (!it_bool.second)
-			it_bool.first->second++;
+	void add(std::unordered_map<Key, unsigned int > &dict ,const Key & key,int weight=1) {
+		std::unordered_map<Key, unsigned int > :: value_type e{ key, 1};
+	auto it_bool = dict.insert(e);
+		//if (!it_bool.second)
+		//	it_bool.first->second+=weight;
 	}
 public:
 	void addWord(const std::string & word);
@@ -142,7 +157,7 @@ public:
 		Key temp;
 		do {
 			size = getSubOffalfa(off, key, temp);
-			if (size > 2) {
+			if (size > 3) {
 				if (off > 0)
 				{
 					if (off + size < n2)
@@ -156,8 +171,9 @@ public:
 					return getScoreEnd(key);
 			}
 			off += size;
-		} while (n2 - size < 3);
+		} while (n2 - off > 3);
 
+		return 0;
 	}
 };
 
@@ -167,15 +183,15 @@ void  CombinedRaingGiver<n2> ::addWord(const std::string & word) {
 	Key temp;
 	for (i = 0, ik = word.size() - n2; i < ik; i++) {
 		initKey(temp, word, i, n2);
-		add(middels, temp);
+		add(middels, temp,n2);
 	}
 	int size_ = (n2  > word.size()) ? word.size() : n2;
-	for (size = 3; size < size_; size++) {
+	for (size = 4; size < size_; size++) {
 		off = word.size() - size;
 		initKey(temp, word, off, size);
-		add(ends, temp);
+		add(ends, temp,size);
 		initKey(temp, word, i, size);
-		add(begins, temp);
+		add(begins, temp,size);
 	}
 }
 

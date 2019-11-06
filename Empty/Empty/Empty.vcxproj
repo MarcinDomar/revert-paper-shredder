@@ -116,11 +116,13 @@
     <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\NarrowerSearches.cpp" />
     <ClCompile Include="..\..\src\RatingGivers.cpp" />
+    <ClCompile Include="..\..\src\utillites.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\NarrowerSearches.h" />
     <ClInclude Include="..\..\src\RatingGivers.h" />
     <ClInclude Include="..\..\src\Types.h" />
+    <ClInclude Include="..\..\src\utillites.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

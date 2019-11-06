@@ -4,22 +4,21 @@
 
 class NarrowerSearches
 {
-	using CoumnsPermutation = std::vector<int>;
+
 
 	const VectorOrRows & inputData;
-	const CombinedRaingGiver<4>& rater;
+	const CombinedRaingGiver<6>& rater;
 	const size_t rows;
 	const size_t cols;
-	const InitializerOfIndex2Permutaion indexNexter;
+	const InitializerOfIndex3Permutaion indexNexter;
 	std::vector<unsigned long long >  cols2_scores;
-	std::vector<Index2Perm> indexes;
-	
-	
+	std::vector<Index3Perm> indexes;
+
 	void buildScores();
 	
-	std::vector<Index2Perm> getAllIndexes() {
-		Index2Perm index = indexNexter.getFirst();
-		std::vector<Index2Perm> indexes(cols2_scores.size());
+	std::vector<Index3Perm> getAllIndexes() {
+		Index3Perm index = indexNexter.getFirst();
+		std::vector<Index3Perm> indexes(cols2_scores.size());
 		for (size_t i = 0; i < indexes.size(); i++) {
 			indexes[i] = index;
 			indexNexter.initToNext(index);
@@ -27,10 +26,10 @@ class NarrowerSearches
 		return indexes;
 	}
 
-	std::vector<Index2Perm> getSortedIndexes() {
+	std::vector<Index3Perm> getSortedIndexes() {
 		std::vector<unsigned int > positions(cols2_scores.size());
 		auto indexes=getAllIndexes();
-		std::vector<Index2Perm> retIndexes(8 * indexes.size());
+		std::vector<Index3Perm> retIndexes(8 * indexes.size());
 
 		for( unsigned int i=0; i< positions.size();i++)	positions[i] = i;
 		std::sort(positions.begin(), positions.end(), [this](auto & p1, auto &p2) {
@@ -43,10 +42,10 @@ class NarrowerSearches
 		return retIndexes;
 	}
 	
-	std::vector<PaperSide> getPapers(const std::vector<CoumnsPermutation> & colesPermutatios)const ;
+	std::vector<PaperSide> getPapers(const std::vector<ColumnsPermutation> & colesPermutatios)const ;
 
 public:
-	NarrowerSearches(const VectorOrRows & data, const   CombinedRaingGiver<4> &rater):inputData(data), rater(rater), rows(data.size()), cols(data.front().size()), indexNexter(data.front().size())
+	NarrowerSearches(const VectorOrRows & data, const   CombinedRaingGiver<6> &rater):inputData(data), rater(rater), rows(data.size()), cols(data.front().size()), indexNexter(data.front().size())
 	{
 		cols2_scores = std::vector<unsigned long long >(indexNexter.howManyPermutaion(),0ull);
 		buildScores();

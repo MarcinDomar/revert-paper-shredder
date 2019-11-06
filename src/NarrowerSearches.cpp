@@ -4,22 +4,25 @@
 #include <iostream>
 #include <future>
 #include <thread>
+#include "utillites.h"
 
 
 
 void NarrowerSearches::buildScores() {
 	
 	auto worker = [this](int dist_from_frist, int size) {
-		std::array<char,4>  tw;
-		Index2Perm index = indexNexter.getNs(dist_from_frist);
+		std::array<char,6>  tw;
+		Index3Perm index = indexNexter.getNs(dist_from_frist);
 		for (int i = 0; i < size; i++) {
 			auto & score = cols2_scores[i + dist_from_frist];
 			for (int j = 0; j < inputData.size(); j++)
 			{
 				auto &left = inputData[j][ index[0]];
-				auto &right = inputData[j][index[1]];
+				auto &mid = inputData[j][index[1]];
+				auto &right = inputData[j][index[2]];
 				std::copy(left.begin(), left.end(), tw.begin());
-				std::copy(right.begin(), right.end(), tw.begin()+2);
+				std::copy(mid.begin(), mid.end(), tw.begin() + 2);
+				std::copy(right.begin(), right.end(), tw.begin()+4);
 				score += rater.getScore(tw);
 			}
 			indexNexter.initToNext(index);
@@ -28,13 +31,11 @@ void NarrowerSearches::buildScores() {
 	};
 	using Future = std::future<int>;
 	std::list<Future> futures;
-	
+
 	int size = indexNexter.howManyPermutaion() / std::thread::hardware_concurrency();
 	int i = 0;
-	for (i; i < std::thread::hardware_concurrency()-1; i++)
-	{
+	for (i; i < std::thread::hardware_concurrency()-1; i++)	{
 		futures.push_back(std::async(std::launch::async, worker, i*size, size));
-
 	}
 	futures.back() = std::async(std::launch::async, worker, i*size,indexNexter.howManyPermutaion()  - size*i );
 
@@ -47,7 +48,7 @@ void NarrowerSearches::buildScores() {
 
 std::vector<PaperSide> NarrowerSearches::getBestSugestions(int numbersOfSugestins) {
 	using TempPermutation = std::list<int>;
-	std::vector<CoumnsPermutation>  permutations;
+	std::vector<ColumnsPermutation>  permutations;
 	unsigned int start = 0;
 	int i = 0;
 	for (; i < numbersOfSugestins; i++) {
@@ -63,20 +64,27 @@ std::vector<PaperSide> NarrowerSearches::getBestSugestions(int numbersOfSugestin
 		};
 
 		permutation.push_back(indexes[next][0]);
-		permutation.push_back( indexes[next][1]);
+		permutation.push_back(indexes[next][1]);
+		permutation.push_back(indexes[next][2]);
 		next++;
 		while (next != indexes.size()&&permutation.size()<cols) {
-			if (permutation.back() == indexes[next][0] && isNotAddedEarlier(indexes[next][1])) {
-				permutation.push_back(indexes[next][1]);
+			if (permutation.back() == indexes[next][0] &&
+				*(++permutation.rbegin()) == indexes[next][1]&&
+				isNotAddedEarlier(indexes[next][2]))
+			{
+				permutation.push_back(indexes[next][2]);
 				next++;
-			} else 	if (permutation.front() == indexes[next][1] && isNotAddedEarlier(indexes[next][0])) {
+			} else 	if (permutation.front() == indexes[next][2] &&
+				*(++permutation.begin()) == indexes[next][1] &&
+				isNotAddedEarlier(indexes[next][0]))
+			{
 					permutation.push_front(indexes[next][0]);
 					next++;
 			}
 			next++;
 		}
 		if (permutation.size() == cols) {
-			permutations.push_back(CoumnsPermutation(permutation.begin(), permutation.end()));
+			permutations.push_back(ColumnsPermutation(permutation.begin(), permutation.end()));
 			start++;
 		}
 		else
@@ -85,18 +93,11 @@ std::vector<PaperSide> NarrowerSearches::getBestSugestions(int numbersOfSugestin
 	return getPapers(permutations);
 }
 
-std::vector<PaperSide> NarrowerSearches::getPapers(const std::vector<CoumnsPermutation> & colesPermutatios)const
+std::vector<PaperSide> NarrowerSearches::getPapers(const std::vector<ColumnsPermutation> & colesPermutatios)const
 {
 	std::vector<PaperSide> results;
 	for (int i = 0; i < colesPermutatios.size(); i++) {
-		PaperSide paperSide;
-		for (int row = 0; row != rows; row++) {
-			std::string str;
-			for (auto ixCol : colesPermutatios[i])
-				str.insert(str.end(), inputData[row][ixCol].begin(), inputData[row][ixCol].end());
-			paperSide.emplace_back(std::move(str));
-		}
-		results.emplace_back(paperSide);
+		results.emplace_back(getPageSizeFromColumnPermutation(inputData,colesPermutatios[i]));
 	}
 	return results;
 	

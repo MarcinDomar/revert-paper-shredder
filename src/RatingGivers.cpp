@@ -59,7 +59,7 @@ unsigned int RatingForPageGiver::getScore(const PaperSide & page) const
 
 		while (token != nullptr)
 		{
-			result += set_of_words.count(token)*strlen(token);
+			result += set_of_words.count(token);// *strlen(token);
 			token = strtok_s(nullptr, delim.c_str(), &next_token);
 		}
 	}
