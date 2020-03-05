@@ -36,7 +36,7 @@ VectorOrRows getVectorOrRows(const std::string filename) {
 	for (int i = 0; i < result.size(); i++) {
 		auto & row = result[i];
 		auto & row_l = listofrows.front();
-		for (int j = 0, jk = result.front().size(); j < jk; j++, row_l.pop_front()) {
+		for (size_t j = 0, jk = result.front().size(); j < jk; j++, row_l.pop_front()) {
 			auto & ret_e = row[j];
 			auto & str = row_l.front();
 

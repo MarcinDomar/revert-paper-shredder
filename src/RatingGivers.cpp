@@ -8,7 +8,7 @@
 void RatingGiver::addWord(const std::string & word) {
 	if (word.size() > 0) {
 		TwoChars  tw;
-		for (int i = 0, ik = word.size() - 1;
+		for (size_t i = 0, ik = word.size() - 1;
 			i < ik;
 			i++) {
 			tw[0] = word[i];
@@ -59,7 +59,11 @@ unsigned int RatingForPageGiver::getScore(const PaperSide & page) const
 
 		while (token != nullptr)
 		{
-			result += set_of_words.count(token);// *strlen(token);
+			auto v = (unsigned int)set_of_words.count(token);
+			if (v)
+				result += (unsigned int)set_of_words.count(token)*strlen(token);
+			else
+				result-=strlen(token);
 			token = strtok_s(nullptr, delim.c_str(), &next_token);
 		}
 	}

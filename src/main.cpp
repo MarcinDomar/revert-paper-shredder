@@ -1,13 +1,28 @@
 #include <iostream>
 #include <stdexcept>
-#include "Types.h"
 #include "utillites.h"
 #include "RatingGivers.h"
 #include "NarrowerSearches.h"
 using namespace std;
 
 
+int main_() {
+	std::cout << sizeof(size_t) << "size_t" << std::endl;
+	InitializerOfIndexsNPermutation<4> ini(5);
+	auto f = ini.getFirst();
+	int errors = 0;
+	for (size_t j, i = 0; i < ini.howManyPermutation(); i++, ini.initToNext(f)) {
+		auto ix = ini.getIndexes((int)i);
+		for (j = 0; j < 4 && f[j] == ix[j]; j++);
+		if (j != 4)
+			errors++;
+	}
+	std::cout << errors << "errors" << std::endl;
+	int i;
+	std::cin >> i;
+	return 0;
 
+}
 
 int main(int argc, char *argv[])
 {
@@ -19,7 +34,7 @@ int main(int argc, char *argv[])
 	auto inputData = getVectorOrRows(argv[1]);
 	std::cout << "input readed " << std::endl;
 
-	auto ratingGiverForSibling2Leters = getRatingGiver<CombinedRaingGiver<6>>(argv[2]);
+	auto ratingGiverForSibling2Leters = getRatingGiver<CombinedRaingGiver<8>>(argv[2]);
 	std::cout << "I've got RatingGiver for Sibling 6 Letters readed " << std::endl;
 
 	auto ratingForPageGiver = getRatingGiverForPage(argv[2]);
@@ -41,11 +56,11 @@ int main(int argc, char *argv[])
 	std::sort(indexes.begin(), indexes.end(), [&scores](const auto & ix1, const auto & ix2) {
 		return scores[ix1] < scores[ix2];
 	});
-	for (int i = 0; i < indexes.size(); i++)
+/*	for (int i = 0; i < indexes.size(); i++)
 		std::cout << indexes[i] << "  ";
-	std::cout << std::endl;
+	std::cout << std::endl;*/
 	if (indexes.size()) {
-		for (int i = indexes.size() - 30; i < indexes.size(); i++) {
+		for (size_t i = indexes.size() - 30; i < indexes.size(); i++) {
 			int a = indexes[i];
 			auto &bestPage = sugestedPages[a];
 			for (auto & row : bestPage)
@@ -53,7 +68,7 @@ int main(int argc, char *argv[])
 			std::cout << std::endl;
 		}
 
-		for (int i = indexes.size() - 100; i < indexes.size(); i++)
+		for (size_t i = indexes.size() - 100; i < indexes.size(); i++)
 		{
 			std::cout << "<" << indexes[i] << " " << scores[indexes[i]] << ">";
 		}

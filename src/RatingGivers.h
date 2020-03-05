@@ -1,9 +1,9 @@
 #pragma once
-#include "Types.h"
 #include <map>
 #include <set>
 #include <cstdio>
 #include <fstream>
+#include "InitializerOfIndexes.h"
 namespace std {
 	template <>
 	struct hash<TwoChars>
@@ -44,6 +44,21 @@ namespace std {
 			return std::hash<unsigned int >()(val) ^ std::hash<unsigned int>()( ((unsigned int)k[5]<<8 ) +	((unsigned int)k[4]) );
 		}
 	};
+	template <>
+	struct hash<std::array<char, 8> >
+	{
+		std::size_t operator()(const std::array<char, 8>& k) const
+		{
+			using std::size_t;
+			using std::hash;
+			unsigned int val = ((unsigned int)k[3] << 24) +
+				((unsigned int)k[2] << 16) +
+				((unsigned int)k[1] << 8) +
+				k.front();
+			return std::hash<unsigned int >()(val) ^ std::hash<unsigned int>()( ((unsigned int)k[7]<<24 ) +((unsigned int)k[6]<<16 ) +((unsigned int)k[5]<<8 ) +	((unsigned int)k[4]) );
+		}
+	};
+
 
 
 }
@@ -145,7 +160,7 @@ public:
 		for (; i < n2; i++)key[i] = 0;
 	}
 	void add(std::unordered_map<Key, unsigned int > &dict ,const Key & key,int weight=1) {
-		std::unordered_map<Key, unsigned int > :: value_type e{ key, 1};
+		std::unordered_map<Key, unsigned int > :: value_type e{ key, weight};
 	auto it_bool = dict.insert(e);
 		//if (!it_bool.second)
 		//	it_bool.first->second+=weight;
@@ -157,7 +172,7 @@ public:
 		Key temp;
 		do {
 			size = getSubOffalfa(off, key, temp);
-			if (size > 3) {
+			if (size > 2) {
 				if (off > 0)
 				{
 					if (off + size < n2)
@@ -171,7 +186,7 @@ public:
 					return getScoreEnd(key);
 			}
 			off += size;
-		} while (n2 - off > 3);
+		} while (n2 - off > 2);
 
 		return 0;
 	}
@@ -179,19 +194,21 @@ public:
 
 template <int n2>
 void  CombinedRaingGiver<n2> ::addWord(const std::string & word) {
-	int ik , i,size,off;
+	size_t ik , i=0,size,off;
 	Key temp;
-	for (i = 0, ik = word.size() - n2; i < ik; i++) {
-		initKey(temp, word, i, n2);
-		add(middels, temp,n2);
+	if (word.size() > n2) {
+		for (i = 0, ik = word.size() - n2; i < ik; i++) {
+			initKey(temp, word, (int)i, n2);
+			add(middels, temp, n2);
+		}
 	}
-	int size_ = (n2  > word.size()) ? word.size() : n2;
-	for (size = 4; size < size_; size++) {
+    size_t size_ = (n2  > word.size()) ? word.size() : n2;
+	for (size = 2; size < size_; size++) {
 		off = word.size() - size;
-		initKey(temp, word, off, size);
-		add(ends, temp,size);
-		initKey(temp, word, i, size);
-		add(begins, temp,size);
+		initKey(temp, word, (int)off,(int) size);
+		add(ends, temp,(int)size);
+		initKey(temp, word, (int)i, (int)size);
+		add(begins, temp,(int)size);
 	}
 }
 

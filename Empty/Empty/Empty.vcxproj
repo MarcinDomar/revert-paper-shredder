@@ -119,9 +119,9 @@
     <ClCompile Include="..\..\src\utillites.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\InitializerOfIndexes.h" />
     <ClInclude Include="..\..\src\NarrowerSearches.h" />
     <ClInclude Include="..\..\src\RatingGivers.h" />
-    <ClInclude Include="..\..\src\Types.h" />
     <ClInclude Include="..\..\src\utillites.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
