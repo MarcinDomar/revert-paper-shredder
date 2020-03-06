@@ -12,7 +12,7 @@ class NarrowerSearches
 	const size_t rows;
 	const size_t cols;
 	const InitializerOfIndexsNPermutation<PermutationSize> indexNexter;
-	std::vector<unsigned long long >  cols2_scores;
+	std::vector<long long >  cols2_scores;
 	std::vector<typename InitializerOfIndexsNPermutation<PermutationSize>::Indexes> indexes;
 	using Indexes = typename  InitializerOfIndexsNPermutation<PermutationSize>::Indexes;
 	void buildScores();
@@ -30,9 +30,7 @@ class NarrowerSearches
 	std::vector<Indexes> getSortedIndexes() {
 		std::vector<unsigned int > positions(cols2_scores.size());
 		auto indexes=getAllIndexes();
-	//	std::ofstream out("C:\\Users\\dell\\Documents\\revert-paper-shredder\\revert-paper-shredder\\Empty\\Empty\\Wyniki.txt");
 		std::vector<Indexes> retIndexes( indexes.size());
-		//out << cols2_scores.size() << std::endl;
 
 		for( unsigned int i=0; i< positions.size();i++)	positions[i] = i;
 		std::sort(positions.begin(), positions.end(), [this](auto & p1, auto &p2) {
@@ -40,12 +38,7 @@ class NarrowerSearches
 
 		for (size_t i = 0; i < positions.size(); i++)	{
 			retIndexes[i] = indexes[positions[i]];
-
-	//		out << cols2_scores[i] << " ";
-
 		}
-		//std::copy(retIndexes.begin(), retIndexes.begin()+indexes.size(), retIndexes.begin()+indexes.size());
-		//std::copy(retIndexes.begin(), retIndexes.begin()+2*indexes.size(), retIndexes.begin()+2*indexes.size());
 
 		return retIndexes;
 	}
@@ -55,7 +48,7 @@ class NarrowerSearches
 public:
 	NarrowerSearches(const VectorOrRows & data, const   CombinedRaingGiver<CharsSize> &rater):inputData(data), rater(rater), rows(data.size()), cols(data.front().size()), indexNexter((int)data.front().size())
 	{
-		cols2_scores = std::vector<unsigned long long >(indexNexter.howManyPermutation(),0ull);
+		cols2_scores = std::vector< long long >(indexNexter.howManyPermutation(),0ll);
 		buildScores();
 		indexes = getSortedIndexes();
 	}
@@ -106,21 +99,31 @@ void NarrowerSearches<CharsSize>::buildScores() {
 
 
 template <int CharsSize>
-template< int OverlapSize>
+template< int OverlappingSize>
 std::vector<PaperSide> NarrowerSearches<CharsSize>::getBestSugestions(int numbersOfSugestins) {
 	std::vector<ColumnsPermutation>  permutations;
 	int i = 0 ;
-	numbersOfSugestins = numbersOfSugestins > (int)indexes.size() / 3 ? (int)indexes.size() / 3 : numbersOfSugestins;
-	GrowingPermutation<PermutationSize, OverlapSize> growing_permutation;
+	numbersOfSugestins = numbersOfSugestins > (int)indexes.size()  ? (int)indexes.size() : numbersOfSugestins;
+	GrowingPermutation<PermutationSize, OverlappingSize> growing_permutation;
+	int cols_ = ((int)cols-PermutationSize) / (PermutationSize-OverlappingSize)*(PermutationSize-OverlappingSize)+PermutationSize;
 	for (; i < numbersOfSugestins; i++) {
 		int next = 0;
 		growing_permutation.init(indexes[i]);
-		while (next < indexes.size() && growing_permutation.size() < cols) {
+		while (next < indexes.size() && growing_permutation.size() < cols_) {
 			if (growing_permutation.tryAdd(indexes[next]))
 				next = 0;
 			else
 				next++;
 		}
+		if (cols != cols_) {
+			while (next < indexes.size() && growing_permutation.size() < cols) {
+				if (growing_permutation.tryAdd(indexes[next], PermutationSize-((int)cols - cols_)))
+					next = 0;
+				else
+					next++;
+			}
+		}
+
 		if (growing_permutation.size() == cols) {
 			permutations.push_back(growing_permutation.getVecCols());
 		}

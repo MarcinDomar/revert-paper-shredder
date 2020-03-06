@@ -26,8 +26,8 @@ int main_() {
 
 int main(int argc, char *argv[])
 {
-	constexpr int CharsSize = 10;
-	constexpr int OverlapingSize = 4;
+	constexpr int CharsSize = 8;
+	constexpr int OverlapingSize =2;
 	if (argc != 3) {
 		std::cerr << "As first parameter pass path to file with shredded text" << std::endl;
 		std::exit(-1);
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 
 	NarrowerSearches<CharsSize> narrowerSearches(inputData, ratingGiverForSibling2Leters);
 	std::cout << "NarrowerSearches initialized" << std::endl;
-	auto sugestedPages = narrowerSearches.getBestSugestions<OverlapingSize>(100);
+	auto sugestedPages = narrowerSearches.getBestSugestions<OverlapingSize>(1000);
 	std::cout << "I've got " << sugestedPages.size() << "suggested pages   " << std::endl;
 
 	std::vector<int> scores(sugestedPages.size());
@@ -58,11 +58,8 @@ int main(int argc, char *argv[])
 	std::sort(indexes.begin(), indexes.end(), [&scores](const auto & ix1, const auto & ix2) {
 		return scores[ix1] < scores[ix2];
 	});
-/*	for (int i = 0; i < indexes.size(); i++)
-		std::cout << indexes[i] << "  ";
-	std::cout << std::endl;*/
 	if (indexes.size()) {
-		for (size_t i = indexes.size()>30?indexes.size() - 30:0; i < indexes.size(); i++) {
+		for (size_t i = indexes.size()>10?indexes.size() - 10:0; i < indexes.size(); i++) {
 			int a = indexes[i];
 			auto &bestPage = sugestedPages[a];
 			for (auto & row : bestPage)
@@ -70,7 +67,7 @@ int main(int argc, char *argv[])
 			std::cout << std::endl;
 		}
 
-		for (size_t i = indexes.size()>100?indexes.size()-100:0; i < indexes.size(); i++)
+		for (size_t i = indexes.size()>100?indexes.size()-20:0; i < indexes.size(); i++)
 		{
 			std::cout << "<" << indexes[i] << " " << scores[indexes[i]] << ">";
 		}

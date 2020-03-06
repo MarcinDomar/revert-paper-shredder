@@ -49,9 +49,9 @@ RatingForPageGiver  getRatingGiverForPage(const std::string & filePath) {
 	return RatingForPageGiver(ReadDictBasicToSet(filePath));
 }
 
-unsigned int RatingForPageGiver::getScore(const PaperSide & page) const
+int RatingForPageGiver::getScore(const PaperSide & page) const
 {
-	unsigned int result = 0;
+	int result = 0;
 	for (auto & line : page) 
 	{
 		char *next_token = nullptr;
@@ -59,9 +59,9 @@ unsigned int RatingForPageGiver::getScore(const PaperSide & page) const
 
 		while (token != nullptr)
 		{
-			auto v = (unsigned int)set_of_words.count(token);
+			auto v = (int)set_of_words.count(token);
 			if (v)
-				result += (unsigned int)set_of_words.count(token)*strlen(token);
+				result += (int)set_of_words.count(token)*strlen(token);
 			else
 				result-=strlen(token);
 			token = strtok_s(nullptr, delim.c_str(), &next_token);

@@ -82,7 +82,7 @@ public:
 
 	RatingForPageGiver(std::set<std::string> && setOfWords, std::string delim = " ,.;?") :set_of_words(setOfWords), delim(delim) {}
 	RatingForPageGiver(std::set<std::string> & setOfWords, std::string delim = " ,.;?") :set_of_words(setOfWords), delim(delim) {}
-	unsigned int getScore(const PaperSide& page)const;
+	int getScore(const PaperSide& page)const;
 };
 
 RatingForPageGiver  getRatingGiverForPage(const std::string & filePath);
@@ -121,8 +121,12 @@ class CombinedRaingGiver {
 	std::unordered_map<Key, unsigned int > begins;
 	std::unordered_map<Key, unsigned int > ends;
 	std::unordered_map<Key, unsigned int > middels;
+	int countNegativScore(const Key & key)const {
+		return key[n2 - 1] != 0 ? -n2 :-(int)strlen(key.data());
+	}
 public:
 	inline void add(const Key & key);
+
 	int getSubOffalfa(int & off, const Key& key, Key &ret) const {
 		for (; off < n2 && !isalpha(key[off]); off++);
 		int j = off;
@@ -132,38 +136,39 @@ public:
 			ret[j] = 0;
 		return size;
 	}
-	unsigned int getScoreWord(Key  & key)const  {
+	int getScoreWord(Key  & key)const  {
 		try {
 			auto b = begins.at(key);
 			auto e = ends.at(key);
 			return (b < e) ? b : e;
 		}
 		catch (...) {
-			return 0;
+			return countNegativScore(key);
 		}
 	}
-	unsigned int getScoreBeg(Key  & key) const {
+	int getScoreBeg(Key  & key) const {
 		try {
 			return begins.at(key);
 		}
 		catch (...) {
-			return 0;
+			return countNegativScore(key);
 		}
 	}
-	unsigned int getScoreEnd(Key  & key) const {
+	int getScoreEnd(Key  & key) const {
 		try {
 			return ends.at(key);
 		}
 		catch (...) {
-			return 0;
+			return countNegativScore(key);
+
 		}
 	}
-	unsigned int getScoreMid(Key  & key) const {
+	int getScoreMid(Key  & key) const {
 		try {
 			return middels.at(key);
 		}
 		catch (...) {
-			return 0;
+			return countNegativScore(key);
 		}
 	}
 	void initKey(Key &key, const std::string &word,int off,int size)
@@ -180,8 +185,8 @@ public:
 	}
 public:
 	void addWord(const std::string & word);
-	unsigned int getScore(Key & key)const {
-		int off = 0, size;
+	 int getScore(Key & key)const {
+		int off = 0, size,score=0;
 		Key temp;
 		do {
 			size = getSubOffalfa(off, key, temp);
@@ -189,19 +194,19 @@ public:
 				if (off > 0)
 				{
 					if (off + size < n2)
-						return getScoreWord(temp);
-					return getScoreBeg(temp);
+						score+=getScoreWord(temp);
+					score+= getScoreBeg(temp);
 				}
 				else if (size == n2) {
-					return getScoreMid(temp);
+					score+= getScoreMid(temp);
 				}
 				else
-					return getScoreEnd(temp);
+					score+= getScoreEnd(temp);
 			}
 			off += size;
 		} while (n2 - off > 2);
 
-		return 0;
+		return score;
 	}
 };
 
