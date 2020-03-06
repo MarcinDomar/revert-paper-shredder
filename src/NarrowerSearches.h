@@ -30,9 +30,9 @@ class NarrowerSearches
 	std::vector<Indexes> getSortedIndexes() {
 		std::vector<unsigned int > positions(cols2_scores.size());
 		auto indexes=getAllIndexes();
-		std::ofstream out("C:\\Users\\dell\\Documents\\revert-paper-shredder\\revert-paper-shredder\\Empty\\Empty\\Wyniki.txt");
+	//	std::ofstream out("C:\\Users\\dell\\Documents\\revert-paper-shredder\\revert-paper-shredder\\Empty\\Empty\\Wyniki.txt");
 		std::vector<Indexes> retIndexes( indexes.size());
-		out << cols2_scores.size() << std::endl;
+		//out << cols2_scores.size() << std::endl;
 
 		for( unsigned int i=0; i< positions.size();i++)	positions[i] = i;
 		std::sort(positions.begin(), positions.end(), [this](auto & p1, auto &p2) {
