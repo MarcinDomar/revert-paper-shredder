@@ -189,14 +189,14 @@ public:
 				if (off > 0)
 				{
 					if (off + size < n2)
-						return getScoreWord(key);
-					return getScoreBeg(key);
+						return getScoreWord(temp);
+					return getScoreBeg(temp);
 				}
 				else if (size == n2) {
-					return getScoreMid(key);
+					return getScoreMid(temp);
 				}
 				else
-					return getScoreEnd(key);
+					return getScoreEnd(temp);
 			}
 			off += size;
 		} while (n2 - off > 2);
