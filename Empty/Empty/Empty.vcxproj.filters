@@ -27,9 +27,6 @@
     <ClCompile Include="..\..\src\utillites.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\NarrowerSearches.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\NarrowerSearches.h">
@@ -42,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\InitializerOfIndexes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GrowingPermutation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -26,6 +26,8 @@ int main_() {
 
 int main(int argc, char *argv[])
 {
+	constexpr int CharsSize = 10;
+	constexpr int OverlapingSize = 4;
 	if (argc != 3) {
 		std::cerr << "As first parameter pass path to file with shredded text" << std::endl;
 		std::exit(-1);
@@ -34,15 +36,15 @@ int main(int argc, char *argv[])
 	auto inputData = getVectorOrRows(argv[1]);
 	std::cout << "input readed " << std::endl;
 
-	auto ratingGiverForSibling2Leters = getRatingGiver<CombinedRaingGiver<8>>(argv[2]);
-	std::cout << "I've got RatingGiver for Sibling 6 Letters readed " << std::endl;
+	auto ratingGiverForSibling2Leters = getRatingGiver<CombinedRaingGiver<CharsSize>>(argv[2]);
+	std::cout << "I've got RatingGiver for Sibling  Letters readed " << std::endl;
 
 	auto ratingForPageGiver = getRatingGiverForPage(argv[2]);
 	std::cout << "I've got RatingGiver for pages  " << std::endl;
 
-	NarrowerSearches narrowerSearches(inputData, ratingGiverForSibling2Leters);
+	NarrowerSearches<CharsSize> narrowerSearches(inputData, ratingGiverForSibling2Leters);
 	std::cout << "NarrowerSearches initialized" << std::endl;
-	auto sugestedPages = narrowerSearches.getBestSugestions(100000);
+	auto sugestedPages = narrowerSearches.getBestSugestions<OverlapingSize>(100);
 	std::cout << "I've got " << sugestedPages.size() << "suggested pages   " << std::endl;
 
 	std::vector<int> scores(sugestedPages.size());
@@ -60,7 +62,7 @@ int main(int argc, char *argv[])
 		std::cout << indexes[i] << "  ";
 	std::cout << std::endl;*/
 	if (indexes.size()) {
-		for (size_t i = indexes.size() - 30; i < indexes.size(); i++) {
+		for (size_t i = indexes.size()>30?indexes.size() - 30:0; i < indexes.size(); i++) {
 			int a = indexes[i];
 			auto &bestPage = sugestedPages[a];
 			for (auto & row : bestPage)
@@ -68,7 +70,7 @@ int main(int argc, char *argv[])
 			std::cout << std::endl;
 		}
 
-		for (size_t i = indexes.size() - 100; i < indexes.size(); i++)
+		for (size_t i = indexes.size()>100?indexes.size()-100:0; i < indexes.size(); i++)
 		{
 			std::cout << "<" << indexes[i] << " " << scores[indexes[i]] << ">";
 		}
@@ -76,7 +78,7 @@ int main(int argc, char *argv[])
 
 	}
 	else {
-		std::cerr << "Nothing to retun " << std::endl;
+		std::cerr << "Nothing to return " << std::endl;
 	}
 
 	int i;

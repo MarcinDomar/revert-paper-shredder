@@ -114,11 +114,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\main.cpp" />
-    <ClCompile Include="..\..\src\NarrowerSearches.cpp" />
     <ClCompile Include="..\..\src\RatingGivers.cpp" />
     <ClCompile Include="..\..\src\utillites.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\GrowingPermutation.h" />
     <ClInclude Include="..\..\src\InitializerOfIndexes.h" />
     <ClInclude Include="..\..\src\NarrowerSearches.h" />
     <ClInclude Include="..\..\src\RatingGivers.h" />

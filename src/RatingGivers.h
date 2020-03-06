@@ -58,7 +58,20 @@ namespace std {
 			return std::hash<unsigned int >()(val) ^ std::hash<unsigned int>()( ((unsigned int)k[7]<<24 ) +((unsigned int)k[6]<<16 ) +((unsigned int)k[5]<<8 ) +	((unsigned int)k[4]) );
 		}
 	};
-
+	template <>
+	struct hash<std::array<char, 10> >
+	{
+		std::size_t operator()(const std::array<char, 10>& k) const
+		{
+			using std::size_t;
+			using std::hash;
+			unsigned int val = ((unsigned int)k[3] << 24) +
+				((unsigned int)k[2] << 16) +
+				((unsigned int)k[1] << 8) +
+				k.front();
+			return std::hash<unsigned int >()(val) ^ std::hash<unsigned int>()( ((unsigned int)k[7]<<24 ) +((unsigned int)k[6]<<16 ) +((unsigned int)k[5]<<8 ) +	((unsigned int)k[4]) ) ^  std::hash<unsigned int>()( ((unsigned int)k[9]<<8 ) +	((unsigned int)k[8]) );
+		}
+	};
 
 
 }
