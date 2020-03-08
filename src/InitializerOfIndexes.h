@@ -1,16 +1,6 @@
 #pragma once
-#include <vector>
-#include <string>
-#include <array>
-#include <unordered_map>
-
-using ListOfRows = std::list < std::list<std::string>>;
-using TwoChars = std::array<char, 2>;
-using VectorOrRows = std::vector<std::vector<TwoChars>>;
-using PaperSide = std::vector<std::string>;
-using ColumnsPermutation = std::vector<int>;
+#include "types.h"
 using Index2Perm = std::array<int, 2>;
-
 
 class InitializerOfIndex2Permutaion {
 	const int size_of_set;
@@ -46,12 +36,13 @@ public:
 };
 
 
-template <int N>
+template <int N,typename ColIndexType_=unsigned char>
 class InitializerOfIndexsNPermutation {
 	std::array< unsigned int , N - 1> ranges;
 	std::vector<unsigned int > const_numbers_of_indexes ;
 public :
-	using Indexes = std::array<int, N>;
+	using ColIndexType = ColIndexType_;
+	using Indexes = std::array<ColIndexType, N>;
 	const int size_of_set;
 	bool initNextI(int ix, Indexes & index) const {
 		index[ix]++;
@@ -118,5 +109,5 @@ public:
 		}
 		return indexes;
 	}
-	unsigned int howManyPermutation()const { return (size_of_set)*ranges[0]; }
+	unsigned int getSizeOfAllPermutations()const { return (size_of_set)*ranges[0]; }
 };

@@ -122,6 +122,7 @@
     <ClInclude Include="..\..\src\InitializerOfIndexes.h" />
     <ClInclude Include="..\..\src\NarrowerSearches.h" />
     <ClInclude Include="..\..\src\RatingGivers.h" />
+    <ClInclude Include="..\..\src\types.h" />
     <ClInclude Include="..\..\src\utillites.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

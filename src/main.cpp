@@ -11,7 +11,7 @@ int main_() {
 	InitializerOfIndexsNPermutation<4> ini(5);
 	auto f = ini.getFirst();
 	int errors = 0;
-	for (size_t j, i = 0; i < ini.howManyPermutation(); i++, ini.initToNext(f)) {
+	for (size_t j, i = 0; i < ini.getSizeOfAllPermutations(); i++, ini.initToNext(f)) {
 		auto ix = ini.getIndexes((int)i);
 		for (j = 0; j < 4 && f[j] == ix[j]; j++);
 		if (j != 4)
@@ -27,24 +27,25 @@ int main_() {
 int main(int argc, char *argv[])
 {
 	constexpr int CharsSize = 8;
-	constexpr int OverlapingSize =2;
+	constexpr int RatierCharsSize = 10;
+	constexpr int OverlapingSize =3;
 	if (argc != 3) {
 		std::cerr << "As first parameter pass path to file with shredded text" << std::endl;
 		std::exit(-1);
 	}
 
-	auto inputData = getVectorOrRows(argv[1]);
+	auto inputData = getVectorOfRows(argv[1]);
 	std::cout << "input readed " << std::endl;
 
-	auto ratingGiverForSibling2Leters = getRatingGiver<CombinedRaingGiver<CharsSize>>(argv[2]);
+	auto ratingGiverForSiblingLeters = getRatingGiver<CombinedRatingGiver<RatierCharsSize>>(argv[2]);
 	std::cout << "I've got RatingGiver for Sibling  Letters readed " << std::endl;
 
 	auto ratingForPageGiver = getRatingGiverForPage(argv[2]);
 	std::cout << "I've got RatingGiver for pages  " << std::endl;
 
-	NarrowerSearches<CharsSize> narrowerSearches(inputData, ratingGiverForSibling2Leters);
+	NarrowerSearches<CharsSize> narrowerSearches(inputData);
 	std::cout << "NarrowerSearches initialized" << std::endl;
-	auto sugestedPages = narrowerSearches.getBestSugestions<OverlapingSize>(1000);
+	auto sugestedPages = narrowerSearches.getBestSugestions<OverlapingSize>(8000,ratingGiverForSiblingLeters);
 	std::cout << "I've got " << sugestedPages.size() << "suggested pages   " << std::endl;
 
 	std::vector<int> scores(sugestedPages.size());

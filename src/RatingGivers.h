@@ -21,27 +21,15 @@ namespace std {
 	{
 		std::size_t operator()(const std::array<char, 4>& k) const
 		{
-			using std::size_t;
-			using std::hash;
-			unsigned int val = ((unsigned int )k[3] << 24) +
-				((unsigned int)k[2] << 16) +
-				((unsigned int)k[1] << 8) +
-				k.front();
-			return std::hash<unsigned int >()(val);
+			return std::hash<unsigned int >()(*reinterpret_cast<const unsigned int *>(k.data()));
 		}
 	};
 	template <>
 	struct hash<std::array<char, 6> >
 	{
-		std::size_t operator()(const std::array<char, 6>& k) const
-		{
-			using std::size_t;
-			using std::hash;
-			unsigned int val = ((unsigned int)k[3] << 24) +
-				((unsigned int)k[2] << 16) +
-				((unsigned int)k[1] << 8) +
-				k.front();
-			return std::hash<unsigned int >()(val) ^ std::hash<unsigned int>()( ((unsigned int)k[5]<<8 ) +	((unsigned int)k[4]) );
+		std::size_t operator()(const std::array<char, 6>& k) const {
+			return std::hash<unsigned int >()(*reinterpret_cast<const unsigned int *>(k.data())) ^
+				std::hash<unsigned int>()((unsigned int)*reinterpret_cast<const unsigned short*>(&k[4]));
 		}
 	};
 	template <>
@@ -49,13 +37,8 @@ namespace std {
 	{
 		std::size_t operator()(const std::array<char, 8>& k) const
 		{
-			using std::size_t;
-			using std::hash;
-			unsigned int val = ((unsigned int)k[3] << 24) +
-				((unsigned int)k[2] << 16) +
-				((unsigned int)k[1] << 8) +
-				k.front();
-			return std::hash<unsigned int >()(val) ^ std::hash<unsigned int>()( ((unsigned int)k[7]<<24 ) +((unsigned int)k[6]<<16 ) +((unsigned int)k[5]<<8 ) +	((unsigned int)k[4]) );
+			return std::hash<unsigned int >()(*reinterpret_cast<const unsigned int *>(k.data())) ^
+				std::hash<unsigned int>()(*reinterpret_cast<const unsigned int*>(&k[4]));
 		}
 	};
 	template <>
@@ -63,18 +46,13 @@ namespace std {
 	{
 		std::size_t operator()(const std::array<char, 10>& k) const
 		{
-			using std::size_t;
-			using std::hash;
-			unsigned int val = ((unsigned int)k[3] << 24) +
-				((unsigned int)k[2] << 16) +
-				((unsigned int)k[1] << 8) +
-				k.front();
-			return std::hash<unsigned int >()(val) ^ std::hash<unsigned int>()( ((unsigned int)k[7]<<24 ) +((unsigned int)k[6]<<16 ) +((unsigned int)k[5]<<8 ) +	((unsigned int)k[4]) ) ^  std::hash<unsigned int>()( ((unsigned int)k[9]<<8 ) +	((unsigned int)k[8]) );
+			return std::hash<unsigned int >()(*reinterpret_cast<const unsigned int *>(k.data())) ^
+				std::hash<unsigned int>()(*reinterpret_cast<const unsigned int*>(&k[4])) ^
+				std::hash<unsigned int>()((unsigned int)*reinterpret_cast<const unsigned short*>(&k[8]));;
 		}
 	};
-
-
 }
+
 class RatingForPageGiver {
 	const std::set<std::string> set_of_words;
 	const std::string delim;
@@ -116,27 +94,38 @@ void RatingGiver::add(const TwoChars & twoChars) {
 }
 
 template <int n2>
-class CombinedRaingGiver {
+class CombinedRatingGiver {
+	using Weight = short;
 	using Key = std::array<char, n2>;
-	std::unordered_map<Key, unsigned int > begins;
-	std::unordered_map<Key, unsigned int > ends;
-	std::unordered_map<Key, unsigned int > middels;
-	int countNegativScore(const Key & key)const {
-		return key[n2 - 1] != 0 ? -n2 :-(int)strlen(key.data());
+	using Dictonary = std::unordered_map<Key, Weight>;
+	Dictonary begins;
+	Dictonary ends;
+	Dictonary middels;
+	Weight countNegativScore(const Key & key)const {
+		return key[n2 - 1] != 0 ? -n2 : -(Weight)strlen(key.data());
 	}
 public:
-	inline void add(const Key & key);
 
 	int getSubOffalfa(int & off, const Key& key, Key &ret) const {
 		for (; off < n2 && !isalpha(key[off]); off++);
 		int j = off;
 		for (; j < n2 && isalpha(key[j]); j++) ret[j - off] = key[j];
-		int size =   j-off;
-		for (j = size; j< n2; j++)
+		int size = j - off;
+		for (j = size; j < n2; j++)
 			ret[j] = 0;
 		return size;
 	}
-	int getScoreWord(Key  & key)const  {
+	template <int sizeK>
+	int getSubOffalfa(int & off, const std::array<char,sizeK> & key, Key &ret) const {
+		for (; off < sizeK && !isalpha(key[off]); off++);
+		int j = off;
+		for (; j < sizeK && (j-off) < n2 && isalpha(key[j]); j++) ret[j - off] = key[j];
+		int size = j - off;
+		for (j = size; j < n2; j++)
+			ret[j] = 0;
+		return size;
+	}
+	auto getScoreWord(Key  & key)const {
 		try {
 			auto b = begins.at(key);
 			auto e = ends.at(key);
@@ -146,7 +135,7 @@ public:
 			return countNegativScore(key);
 		}
 	}
-	int getScoreBeg(Key  & key) const {
+	auto getScoreBeg(Key  & key) const {
 		try {
 			return begins.at(key);
 		}
@@ -154,7 +143,7 @@ public:
 			return countNegativScore(key);
 		}
 	}
-	int getScoreEnd(Key  & key) const {
+	auto  getScoreEnd(Key  & key) const {
 		try {
 			return ends.at(key);
 		}
@@ -163,7 +152,7 @@ public:
 
 		}
 	}
-	int getScoreMid(Key  & key) const {
+	auto getScoreMid(Key  & key) const {
 		try {
 			return middels.at(key);
 		}
@@ -171,22 +160,24 @@ public:
 			return countNegativScore(key);
 		}
 	}
-	void initKey(Key &key, const std::string &word,int off,int size)
+	void initKey(Key &key, const std::string &word, int off, int size)
 	{
 		int i = 0;
 		for (; i < size; i++) key[i] = word[off + i];
 		for (; i < n2; i++)key[i] = 0;
 	}
-	void add(std::unordered_map<Key, unsigned int > &dict ,const Key & key,int weight=1) {
-		std::unordered_map<Key, unsigned int > :: value_type e{ key, weight};
-	auto it_bool = dict.insert(e);
+	void add(Dictonary &dict, const Key & key, Weight weight = 1) {
+		Dictonary::value_type e{ key, weight };
+		auto it_bool = dict.insert(e);
 		//if (!it_bool.second)
 		//	it_bool.first->second+=weight;
 	}
 public:
 	void addWord(const std::string & word);
-	 int getScore(Key & key)const {
-		int off = 0, size,score=0;
+template <int sizeK>
+	auto getScore(std::array<char,sizeK> & key)const {
+		int off = 0, size;
+		Weight score = 0;
 		Key temp;
 		do {
 			size = getSubOffalfa(off, key, temp);
@@ -194,25 +185,25 @@ public:
 				if (off > 0)
 				{
 					if (off + size < n2)
-						score+=getScoreWord(temp);
-					score+= getScoreBeg(temp);
+						score += getScoreWord(temp);
+					score += getScoreBeg(temp);
 				}
 				else if (size == n2) {
-					score+= getScoreMid(temp);
+					score += getScoreMid(temp);
 				}
 				else
-					score+= getScoreEnd(temp);
+					score += getScoreEnd(temp);
 			}
 			off += size;
-		} while (n2 - off > 2);
+		} while (sizeK- off > 2);
 
 		return score;
 	}
 };
 
 template <int n2>
-void  CombinedRaingGiver<n2> ::addWord(const std::string & word) {
-	size_t ik , i=0,size,off;
+void  CombinedRatingGiver<n2> ::addWord(const std::string & word) {
+	size_t ik, i = 0, size, off;
 	Key temp;
 	if (word.size() > n2) {
 		for (i = 0, ik = word.size() - n2; i < ik; i++) {
@@ -220,13 +211,13 @@ void  CombinedRaingGiver<n2> ::addWord(const std::string & word) {
 			add(middels, temp, n2);
 		}
 	}
-    size_t size_ = (n2  > word.size()) ? word.size() : n2;
+	size_t size_ = (n2 > word.size()) ? word.size() : n2;
 	for (size = 2; size < size_; size++) {
 		off = word.size() - size;
-		initKey(temp, word, (int)off,(int) size);
-		add(ends, temp,(int)size);
+		initKey(temp, word, (int)off, (int)size);
+		add(ends, temp, (int)size);
 		initKey(temp, word, (int)i, (int)size);
-		add(begins, temp,(int)size);
+		add(begins, temp, (int)size);
 	}
 }
 

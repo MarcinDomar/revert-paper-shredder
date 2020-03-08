@@ -3,115 +3,135 @@
 #include <list>
 
 
-template<  int PermutationSize,int OverlapSize>
-class GrowingPermutation :private std::list<int>
+template<  int PermutationSize, int OverlapSize, typename ElementType_>
+class GrowingPermutation :private std::list<ElementType_>
 {
-	using Indexes = std::array<int, PermutationSize>;
-	bool isNotAppearing(int col) {
+	using ElementType = ElementType_;
+	using Indexes = std::array<ElementType, PermutationSize>;
+	bool isNotAppearing(int col) const{
 		for (auto e : (*this)) {
 			if (col == e)
 				return false;
 		}
 		return true;
 	}
-	bool tryAddLeft(const Indexes & indexes ,int overlapSize) {
+public:
+	bool tryAddLeft(const Indexes & indexes, int overlapSize) {
+		if (!canBeAddedLeft(indexes, overlapSize))
+			return  false;
+		addToLeft(indexes);
+		return true;
+	}
 
+	bool canBeAddedLeft(const Indexes & indexes, int overlapSize) {
 		const_iterator it = begin();
 		int ix = PermutationSize - overlapSize;
 		for (; ix < PermutationSize && indexes[ix] == *it; ix++, it++);
-		if (ix != PermutationSize)
+		if  (ix != PermutationSize)
 			return false;
-		for (ix = 0; ix < PermutationSize - overlapSize&& isNotAppearing(indexes[ix]); ix++);
-		if (ix != (PermutationSize - overlapSize))
-			return false;
-
-		for (ix = 0; ix < (PermutationSize - overlapSize); ix++)
-			push_front(indexes[ix]);
-		return true;
+		for (ix=0; ix < PermutationSize - overlapSize&& isNotAppearing(indexes[ix]); ix++);
+		return (ix == (PermutationSize - overlapSize));
 	}
 
 
-	bool tryAddRight(const Indexes & indexes, int overlapSize) {
-		const_reverse_iterator it = rbegin();;
-
-		std::advance(it, overlapSize-1);
+	bool canBeAddedToRight(const Indexes& indexes, int overlapSize) const {
+		const_iterator it = end();
+		std::advance(it,- overlapSize );
 		int ix = 0;
-		for (; ix < overlapSize&&indexes[ix] == *it; ix++, it--);
+		for (; ix < overlapSize&&indexes[ix] == *it; ix++, it++);
 		if (ix != overlapSize)
 			return false;
-
 		for (; ix < PermutationSize && isNotAppearing(indexes[ix]); ix++);
-		if (ix != PermutationSize)
-			return false;
+		return  (ix == PermutationSize);
+	}
 
-		for (ix = overlapSize; ix != PermutationSize; ix++)
-			push_back(indexes[ix]);
+	bool tryAddRight(const Indexes & indexes, int overlapSize) {
+		if (!canBeAddedToRight(indexes,overlapSize))
+			return false;
+		addToRight(indexes);
 		return true;
 	}
 
 
-	bool tryAddLeft(const Indexes & indexes) {
-
+	bool canBeAddedLeft(const Indexes & indexes) {
 		const_iterator it = begin();
 		int ix = PermutationSize - OverlapSize;
 		for (; ix < PermutationSize && indexes[ix] == *it; ix++, it++);
 		if (ix != PermutationSize)
 			return false;
-		for (ix = 0; ix < PermutationSize - OverlapSize&& isNotAppearing(indexes[ix]); ix++);
-		if (ix != (PermutationSize - OverlapSize))
-			return false;
+		for (ix=0; ix < PermutationSize - OverlapSize&& isNotAppearing(indexes[ix]); ix++);
+		return (ix == (PermutationSize - OverlapSize));
+	}
 
-		for (ix = 0; ix < (PermutationSize - OverlapSize); ix++)
+	bool tryAddLeft(const Indexes & indexes) {
+		if (!canBeAddedLeft(indexes))
+			return false;
+		addToLeft(indexes);
+		return true;
+	}
+
+	bool addToLeft(const Indexes & indexes) {
+		int ix = 0;
+		for (; ix < (PermutationSize - OverlapSize); ix++)
 			push_front(indexes[ix]);
 		return true;
 	}
 
-
 	bool tryAddRight(const Indexes & indexes) {
-		const_reverse_iterator it = rbegin();;
+		if (!canBeAddedRight(indexes))
+			return false;
+		addToRight(indexes);
+		return true;
+	}
 
-		std::advance(it, OverlapSize-1);
+	bool canBeAddedRight(const Indexes & indexes) {
+		const_iterator it = end();;
+		std::advance(it,- OverlapSize );
 		int ix = 0;
-		for (; ix < OverlapSize&&indexes[ix] == *it; ix++, it--);
+		for (; ix < OverlapSize&&indexes[ix] == *it; ix++, it++);
 		if (ix != OverlapSize)
 			return false;
-
 		for (; ix < PermutationSize && isNotAppearing(indexes[ix]); ix++);
-		if (ix != PermutationSize)
-			return false;
+		return  (ix == PermutationSize);
+	}
 
-		for (ix = OverlapSize; ix != PermutationSize; ix++)
+	bool addToRight(const Indexes & indexes) {
+		int ix = OverlapSize;
+		for (; ix != PermutationSize; ix++)
 			push_back(indexes[ix]);
 		return true;
 	}
-public:
-	GrowingPermutation(){}
+
+	GrowingPermutation() {}
+
 	GrowingPermutation(Indexes& indexes) {
 
 		init(indexes);
 	}
 
-	void init(const Indexes & indexes){
+	void init(const Indexes & indexes) {
 		clear();
 		for (auto e : indexes)
 			push_back(e);
 	}
 
 	bool tryAdd(const Indexes & indexes) {
-		if (!tryAddRight(indexes)&&!tryAddLeft(indexes)  )
+		if (!tryAddRight(indexes) && !tryAddLeft(indexes))
 			return false;
 		return true;
 	}
 
-	bool tryAdd(const Indexes & indexes,int overlapSize) {
-		if (!tryAddRight(indexes,overlapSize) && !tryAddLeft(indexes,overlapSize))
+	bool tryAdd(const Indexes & indexes, int overlapSize) {
+		if (!tryAddRight(indexes, overlapSize) && !tryAddLeft(indexes, overlapSize))
 			return false;
 		return true;
 	}
-	size_t size()const { return std::list<int>::size(); }
-	std::vector<int> getVecCols()const {
-		std::vector<int> vec(begin(), end());
-	return vec;
+	size_t size()const { return std::list<ElementType>::size(); }
+	std::vector<ElementType> getVecCols()const {
+		std::vector<ElementType> vec(begin(), end());
+		return vec;
 	}
-	void clear() { std::list<int>::clear(); }
+	void clear() { std::list<ElementType>::clear(); }
 };
+
+
