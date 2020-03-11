@@ -49,25 +49,5 @@ RatingForPageGiver  getRatingGiverForPage(const std::string & filePath) {
 	return RatingForPageGiver(ReadDictBasicToSet(filePath));
 }
 
-int  RatingForPageGiver::getScore(const PaperSide & page) const
-{
-	int result = 0;
-	for (auto & line : page) 
-	{
-		char *next_token = nullptr;
-		char *token = strtok_s(const_cast<char*>(line.c_str()), delim.c_str(), &next_token);
-
-		while (token != nullptr)
-		{
-			auto v = (int)set_of_words.count(token);
-			if (v)
-				result += (int)strlen(token);
-			else
-				result-=(int)strlen(token);
-			token = strtok_s(nullptr, delim.c_str(), &next_token);
-		}
-	}
-	return result;
-}
 
 

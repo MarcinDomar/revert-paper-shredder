@@ -2,11 +2,11 @@
 #include "types.h"
 using Index2Perm = std::array<int, 2>;
 
-class InitializerOfIndex2Permutaion {
+class InitializerOfIndexs2Permutaion {
 	const int size_of_set;
 public:
 	Index2Perm getFirst()const { return{ 0,1 }; }
-	InitializerOfIndex2Permutaion(int size_of_set) :size_of_set(size_of_set) {}
+	InitializerOfIndexs2Permutaion(int size_of_set) :size_of_set(size_of_set) {}
 	bool initToNext(Index2Perm & index)const {
 		index[1]++;
 		if (index[1] == index[0])
@@ -34,7 +34,6 @@ public:
 	}
 	int howManyPermutaion()const { return (size_of_set )*(size_of_set-1); }
 };
-
 
 template <int N,typename ColIndexType_=unsigned char>
 class InitializerOfIndexsNPermutation {

@@ -21,17 +21,11 @@
     <ClCompile Include="..\..\src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\RatingGivers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\utillites.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\NarrowerSearches.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\RatingGivers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -41,10 +35,16 @@
     <ClInclude Include="..\..\src\InitializerOfIndexes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\GrowingPermutation.h">
+    <ClInclude Include="..\..\src\types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\types.h">
+    <ClInclude Include="..\..\src\SmallPermutationNarrower.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\PresenceRegister.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\SmallPermutationSelector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

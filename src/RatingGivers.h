@@ -4,6 +4,10 @@
 #include <cstdio>
 #include <fstream>
 #include "InitializerOfIndexes.h"
+#include <unordered_map>
+#include <unordered_set>
+#include <tuple>
+
 namespace std {
 	template <>
 	struct hash<TwoChars>
@@ -41,6 +45,7 @@ namespace std {
 				std::hash<unsigned int>()(*reinterpret_cast<const unsigned int*>(&k[4]));
 		}
 	};
+
 	template <>
 	struct hash<std::array<char, 10> >
 	{
@@ -51,19 +56,50 @@ namespace std {
 				std::hash<unsigned int>()((unsigned int)*reinterpret_cast<const unsigned short*>(&k[8]));;
 		}
 	};
+	template <>
+	struct hash<std::array<unsigned char,2> >
+	{
+		std::size_t operator()(const std::array<unsigned char, 2>& k) const
+		{
+			return
+				std::hash<unsigned int>()((unsigned int)*reinterpret_cast<const unsigned short*>(&k[0]) );;
+		}
+	};
+
+
+	template <>
+	struct hash<std::array<unsigned char,3> >
+	{
+		std::size_t operator()(const std::array<unsigned char, 3>& k) const
+		{
+			return
+				std::hash<unsigned int>()((unsigned int)*reinterpret_cast<const unsigned short*>(&k[0])+
+				(((unsigned int)k[2])<<16));;
+		}
+	};
+
+	template <>
+	struct hash<std::array<unsigned char,4> >
+	{
+		std::size_t operator()(const std::array<unsigned char, 4>& k) const
+		{
+			return
+				std::hash<unsigned int>()(*reinterpret_cast<const unsigned int*>(&k[0]) );;
+		}
+	};
+
+	template <>
+	struct hash<std::array<unsigned char,5> >
+	{
+		std::size_t operator()(const std::array<unsigned char, 5>& k) const
+		{
+			return
+				std::hash<unsigned int>()(*reinterpret_cast<const unsigned int*>(&k[0]) )^
+				std::hash<unsigned int>()((unsigned int)k[4] );
+		}
+	};
 }
 
-class RatingForPageGiver {
-	const std::set<std::string> set_of_words;
-	const std::string delim;
-public:
-
-	RatingForPageGiver(std::set<std::string> && setOfWords, std::string delim = " ,.;?") :set_of_words(setOfWords), delim(delim) {}
-	RatingForPageGiver(std::set<std::string> & setOfWords, std::string delim = " ,.;?") :set_of_words(setOfWords), delim(delim) {}
-	int getScore(const PaperSide& page)const;
-};
-
-RatingForPageGiver  getRatingGiverForPage(const std::string & filePath);
 
 
 
@@ -84,7 +120,6 @@ public:
 
 
 
-RatingGiver getRatingGiver(const std::string filePath);
 
 void RatingGiver::add(const TwoChars & twoChars) {
 	value_type e{ twoChars,1 };
@@ -101,6 +136,8 @@ class CombinedRatingGiver {
 	Dictonary begins;
 	Dictonary ends;
 	Dictonary middels;
+	std::unordered_set<std::string> set_of_words;
+	const std::string delim=std::string(" ,.;?");
 	Weight countNegativScore(const Key & key)const {
 		return key[n2 - 1] != 0 ? -n2 : -(Weight)strlen(key.data());
 	}
@@ -175,7 +212,7 @@ public:
 public:
 	void addWord(const std::string & word);
 template <int sizeK>
-	auto getScore(std::array<char,sizeK> & key)const {
+	auto getScore(const std::array<char,sizeK> & key)const {
 		int off = 0, size;
 		Weight score = 0;
 		Key temp;
@@ -199,11 +236,15 @@ template <int sizeK>
 
 		return score;
 	}
+	int getScore(const PaperSide& page)const;
+
+
 };
 
 template <int n2>
 void  CombinedRatingGiver<n2> ::addWord(const std::string & word) {
 	size_t ik, i = 0, size, off;
+	set_of_words.insert(word);
 	Key temp;
 	if (word.size() > n2) {
 		for (i = 0, ik = word.size() - n2; i < ik; i++) {
@@ -220,7 +261,27 @@ void  CombinedRatingGiver<n2> ::addWord(const std::string & word) {
 		add(begins, temp, (int)size);
 	}
 }
+template <int n2>
+int  CombinedRatingGiver<n2>::getScore(const PaperSide & page) const
+{
+	int result = 0;
+	for (auto & line : page)
+	{
+		char *next_token = nullptr;
+		char *token = strtok_s(const_cast<char*>(line.c_str()), delim.c_str(), &next_token);
 
+		while (token != nullptr)
+		{
+			auto v = set_of_words.find(token)!=set_of_words.end();
+			if (v)
+				result += (int)strlen(token);
+			else
+				result-=(int)strlen(token);
+			token = strtok_s(nullptr, delim.c_str(), &next_token);
+		}
+	}
+	return result;
+}
 
 template <typename RG>
 RG getRatingGiver(const std::string filePath) {
@@ -237,4 +298,3 @@ RG getRatingGiver(const std::string filePath) {
 	file.close();
 	return result;
 }
-
