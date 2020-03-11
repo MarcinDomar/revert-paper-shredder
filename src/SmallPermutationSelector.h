@@ -297,8 +297,8 @@ std::vector<std::vector<ColIndexType>> SmallPermutationSelector<PermutationSize,
 	Futures futures;
 	ListPageColumnsPermutations retList;
 	size_t i = 0, delta = repSize / std::thread::hardware_concurrency();
-//	for (; i < std::thread::hardware_concurrency() - 1; i++)
-//		futures.push_back(std::async(std::launch::async, searcher, this, i*delta, delta));
+	for (; i < std::thread::hardware_concurrency() - 1; i++)
+		futures.push_back(std::async(std::launch::async, searcher, this, i*delta, delta));
 	retList = (this->*searcher)(i*delta, repSize - i*delta);
 
 	while (futures.size()) {
