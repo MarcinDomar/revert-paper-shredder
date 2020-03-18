@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <stdexcept>
 #include "utillites.h"
@@ -29,9 +30,11 @@ int main_() {
 int main(int argc, char *argv[])
 {
 	using ColIndex = unsigned char;
-	constexpr int CharsSize = 8;
-	constexpr int RatierCharsSize = 10;
-	constexpr int OverlapingSize =2;
+	constexpr int CharsSize =8;
+	constexpr int RatierCharsSize = 10;//Variable used to build dictionaries for scoring small permutaions shoud be at least as beg as CharsSize
+	constexpr int OverlappingSize =2; //Varliable use in simple arlgorithm which  select small permutation
+	static_assert(CharsSize % 2 == 0, "CharsSize should be multipication of 2 ");
+	static_assert(OverlappingSize%2==0&& OverlappingSize < CharsSize && OverlappingSize>0," OverlappingSize should be even and greater then 0 and smaller then CharsSize");
 	if (argc != 3) {
 		std::cerr << "As first parameter pass path to file with shredded text" << std::endl;
 		std::exit(-1);
@@ -46,8 +49,8 @@ int main(int argc, char *argv[])
 	auto vecIndexes=spermutationNarrower();
 	std::cout << "Narrow "<<(CharsSize/2)<<" from "<<inputStripes.front().size()<<" permutations , finded " <<vecIndexes.size()<<" intersting permutations" << std::endl;
 	SmallPermutationSelector<CharsSize / 2, ColIndex> narrowerSelector(vecIndexes,(int)inputStripes.front().size() );
-	auto suggestedPages1 = narrowerSelector();
-	auto suggestedPages2 = narrowerSelector.simpleAlgorithm<OverlapingSize>(4000);
+	auto suggestedPages1 = narrowerSelector(2);
+	auto suggestedPages2 = narrowerSelector.simpleAlgorithm<OverlappingSize>(14000);
 
 	std::cout << "I've got from sophisticated algorithm " << suggestedPages1.size() <<" and "<<suggestedPages2.size() << " from simpler algorithm suggested pages   " << std::endl;
 
