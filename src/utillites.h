@@ -22,16 +22,25 @@ SOFTWARE.
 #include "types.h"
 #include "InitializerOfIndexes.h"
 
-ListOfRows  readListOfRows(const std::string filename);
+ListOfRows  readListOfRows(const std::string &filename);
 
-VectorOfRows getVectorOfRows(const std::string filename);
+VectorOfRows getVectorOfRows(const std::string &filename);
+
+VectorOfRows getLowerVectorOfRows(const VectorOfRows& vecOrRows);
 
 
-PaperSide getPaperSizeFromFile(const std::string & fileName);
+PaperSide getPaperSideFromFile(const std::string & fileName);
 
 template  <typename ColIndexType>
-auto getPermutationFromOriginPage(const PaperSide & originText, const VectorOfRows & scrumbled) {
+auto getPermutationFromOriginPage(const PaperSide & originText_, const VectorOfRows & scrumbled) {
+	auto originText = originText_;
 	std::vector<ColIndexType> positionInOriginText(scrumbled.front().size());
+	auto fixedSize = scrumbled.front().size() * 2;
+	for (auto &row : originText) {
+		while (row.size() < fixedSize) {
+			row.append(" "	);
+		}
+	}
 
 	for (int i = 0; i < positionInOriginText.size(); i++) {
 		for (int j = 0, k; j < positionInOriginText.size(); j++) {
@@ -122,11 +131,28 @@ public:
 template <typename PageRatier>
 template<typename  ColIndexType>
 std::vector<typename PermutationRatier< PageRatier>::ScoreIx> PermutationRatier< PageRatier>:: operator()(const std::vector<std::vector<ColIndexType>> & vecPermutations)const {
-	std::vector<ScoreIx> result;
+	std::vector<ScoreIx> result(vecPermutations.size());
+	auto job=[&result,this,&vecPermutations](size_t beg, size_t size) {
+		for (size_t i = beg, iend = beg + size; i < iend; i++) {
+			result[i].ix = (unsigned int)i;
+			result[i].score = pageRatier.getScore(getPageSideFromColumnPermutation(inputStripes, vecPermutations[i]));
+		}
+		return 0;
+	};
+	std::list<std::future<int>> futures;
 	result.reserve(vecPermutations.size());
-	for (size_t i = 0; i < vecPermutations.size(); i++) {
-		result.push_back({ (unsigned int)i,pageRatier.getScore(getPageSideFromColumnPermutation(inputStripes, vecPermutations[i])) });
+	size_t i = 0, delta = vecPermutations.size() / std::thread::hardware_concurrency();
+
+	for (; i < std::thread::hardware_concurrency() - 1; i++)
+		futures.push_back(std::async(std::launch::async, job, i*delta, delta));
+	job(i*delta , result.size() - i*delta);
+
+	while (futures.size()) {
+		futures.front().get();
+		futures.pop_front();
 	}
+
+
 	std::sort(result.begin(), result.end());
 	return result;
 }

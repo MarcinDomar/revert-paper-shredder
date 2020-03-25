@@ -52,8 +52,8 @@ public:
 template <int CharsSize, typename RatierType ,typename ColIndexType = unsigned char>
 class SmallPermutationNarrower {
 	static constexpr int PermutationSize = CharsSize / 2;
-	const InitializerOfIndexsNPermutation<PermutationSize, ColIndexType> indexNexter;
-	using Indexes = typename  InitializerOfIndexsNPermutation<PermutationSize, ColIndexType>::Indexes;
+	const InitializerOfIndexesNPermutation<PermutationSize, ColIndexType> indexNexter;
+	using Indexes = typename  InitializerOfIndexesNPermutation<PermutationSize, ColIndexType>::Indexes;
 	const VectorOfRows & inputStripes;
 	const RatierType ratier;
 
@@ -90,10 +90,7 @@ std::vector<typename SmallPermutationNarrower<CharsSize,RatierType,ColIndexType>
 
 	for (size_t i = 0; i < positions.size(); i++) {
 		vecIndexes[i] = temVecIndexes[positions[i]];
-		;
 	}
-
-
 	auto size_of_permutations_considarated = std::lower_bound(positions.begin(), positions.end(), 0, cols_predicate) - positions.begin();
 	vecIndexes.erase( vecIndexes.begin() + size_of_permutations_considarated, vecIndexes.end());
 	return vecIndexes;
@@ -117,7 +114,7 @@ std::vector<typename SmallPermutationNarrower<CharsSize,RatierType, ColIndexType
 	using Future = std::future<int>;
 	std::list<Future> futures;
 
-	int size = indexNexter.getSizeOfAllPermutations() / std::thread::hardware_concurrency();
+	int size = (int)indexNexter.getSizeOfAllPermutations() / std::thread::hardware_concurrency();
 	size_t i = 0;
 	for (i; i < std::thread::hardware_concurrency() - 1; i++) {
 		futures.push_back(std::async(std::launch::async, worker, (int)i*size, size));

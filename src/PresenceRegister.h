@@ -24,6 +24,7 @@ class PresenceRegister
 	unsigned int registry = 0;
 public:
 	PresenceRegister() = default;
+	
 	template <int size, typename ColIndexType>
 	PresenceRegister(const std::array<ColIndexType, size> & elements) {
 		add(elements);
@@ -33,9 +34,11 @@ public:
 	void add(const std::array<ColIndexType, size> &elements) {
 		for (auto e : elements) registry |= 1u << e;
 	}
+	
 	void add(const PresenceRegister & reg) {
 		registry |= reg.registry;
 	}
+	
 	void subtract(const PresenceRegister & reg) {
 		registry &= ~reg.registry;
 	}

@@ -6,7 +6,8 @@
 #include <algorithm>
 #include "utillites.h"
 
-ListOfRows  readListOfRows(const std::string filename)
+
+ListOfRows  readListOfRows(const std::string &filename)
 {
 	std::ifstream file(filename, std::ios::in);
 	std::string line;
@@ -30,7 +31,8 @@ ListOfRows  readListOfRows(const std::string filename)
 	return listofrows;
 }
 
-VectorOfRows getVectorOfRows(const std::string filename) {
+
+VectorOfRows getVectorOfRows(const std::string &filename) {
 	auto listofrows = readListOfRows(filename);
 	VectorOfRows result(listofrows.size(), VectorOfRows::value_type(listofrows.front().size()));
 	for (int i = 0; i < result.size(); i++) {
@@ -48,7 +50,19 @@ VectorOfRows getVectorOfRows(const std::string filename) {
 	return result;
 }
 
-PaperSide getPaperSizeFromFile(const std::string & fileName)
+
+VectorOfRows getLowerVectorOfRows(const VectorOfRows& vecOrRows) {
+	auto vecRet = vecOrRows;
+	for (auto& r : vecRet) {
+		for (auto& ac : r) {
+			std::transform(ac.begin(), ac.end(), ac.begin(), [](auto& c) {return std::tolower(c); });
+		}
+	}
+	return vecRet;
+}
+
+
+PaperSide getPaperSideFromFile(const std::string & fileName)
 {
 	PaperSide paperSide;
 	std::ifstream file(fileName);

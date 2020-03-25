@@ -37,7 +37,7 @@ class SmallPermutationSelector {
 			presence_register.add(indexes);
 		}
 		PresenceRegisterType presence_register;
-		std::vector<PositionType > connectionsRight, connectionsLeft;
+		std::vector<PositionType > connections ;
 
 		static void sortConnections(std::list<PositionType> & scores, std::vector<PositionType> & connections) {
 			std::vector < std::pair< PositionType, PositionType>> vecPosScores(connections.size());
@@ -51,7 +51,6 @@ class SmallPermutationSelector {
 			for (size_t i = 0; i < vecPosScores.size(); i++)
 				connections[i] = connectionsCopy[vecPosScores[i].first];
 		}
-
 
 		template <int OverlappingSize_>
 		static bool canBeJoined(const IndexesExt & iL, const IndexesExt &iR) {
@@ -75,35 +74,32 @@ class SmallPermutationSelector {
 			{
 				Indexes temp;
 				int i = 1, j = 0;
-				PositionType score =ix ;
-				for (; i < PermutationSize - OverlappingSize - 1; i++) {
-					for (int k = PermutationSize - i; k < PermutationSize; k++, j++)
+				PositionType score = std::abs(ix);
+				for (; i < PermutationSize - OverlappingSize ; i++) {
+					for (int k =   i; k < PermutationSize; k++, j++)
 						temp[j] = ixLeft[k];
-					for (int k = 0; k < PermutationSize - OverlappingSize - i; k++, j++)
-						temp[j] = (ixRight[k + OverlappingSize]);
+					for (int k = OverlappingSize; j < PermutationSize ; k++, j++)
+						temp[j] = (ixRight[k]);
 					if (!isConnectionInOkIndexes(temp))
 						break;
 					score += scoregiver(temp);
 				}
-				if (i >= PermutationSize - OverlappingSize - 1)   {
+				if (i >= PermutationSize - OverlappingSize ) {
 					connections.push_back(ix);
 					scores.push_back(score);
 				}
 			}
 		}
 
-
 		template < typename Pred, typename ScoreGiver>
 		void findAndAddPosibleConnections(const std::vector<IndexesExt> & vecIndexesExt, Pred &&isConnectionOk, ScoreGiver && scoregiver) {
-			std::list<unsigned int > scoresRight, scoresLeft;
-			connectionsLeft.clear();
-			connectionsRight.clear();
+			std::list< PositionType> scores;
+			connections.clear();
 			for (size_t j = 0; j < vecIndexesExt.size(); j++) {
-				trySetUpConnection(*this, vecIndexesExt[j], scoresRight, connectionsRight, (PositionType)j, isConnectionOk, scoregiver);
-				trySetUpConnection(vecIndexesExt[j], *this, scoresLeft, connectionsLeft, (PositionType)j, isConnectionOk, scoregiver);
+				trySetUpConnection(*this, vecIndexesExt[j], scores, connections, (PositionType)j+1, isConnectionOk, scoregiver);
+				trySetUpConnection(vecIndexesExt[j], *this, scores, connections, -(PositionType)j-1, isConnectionOk, scoregiver);
 			}
-			sortConnections(scoresRight, connectionsRight);
-			sortConnections(scoresLeft, connectionsLeft);
+			sortConnections(scores, connections);
 		}
 	};
 
@@ -146,9 +142,9 @@ class SmallPermutationSelector {
 			}
 			return false;
 		}
-
-
+		
 		const std::vector<ColIndexType> & getPermutation()const { return permutation; }
+
 		std::vector<ColIndexType> getMissing(int columnsSize) {
 			return presence_register.getMissingColumns<ColIndexType>(columnsSize);
 		}
@@ -160,7 +156,7 @@ class SmallPermutationSelector {
 
 		void removeLastLeft() {
 			presence_register.subtract(*reinterpret_cast<std::array<ColIndexType, PermutationSize - OverlappingSize>*>(permutation.data()));
-			permutation.erase(permutation.begin(), permutation.begin() +PermutationSize- OverlappingSize);
+			permutation.erase(permutation.begin(), permutation.begin() + PermutationSize - OverlappingSize);
 		}
 
 	};
@@ -178,31 +174,30 @@ class SmallPermutationSelector {
 	void searchForPageColumnPermutationRight(const IndexesExt & el, ListPageColumnsPermutations & outList, GrowingColumnsPermutationCtrl & permutationCtrl)const;
 
 	ListPageColumnsPermutations sofisticateSearching(size_t ixBeg, size_t size)const;
-
-
+	
 
 	std::vector<ColumnsPermutation>  parallelLoop(ListPageColumnsPermutations(SmallPermutationSelector::*sercher)(size_t, size_t)const, size_t repSize)const;
 	mutable int numberOfAttemptsPerLevel;
 public:
 	SmallPermutationSelector(const std::vector<Indexes> & vecIndexes, int columnSize) :vecIndexesExt(vecIndexes.begin(), vecIndexes.end()),
 		columnSize(columnSize),
-		columnSize_(PermutationSize+(columnSize-PermutationSize) / (PermutationSize-OverlappingSize)*(PermutationSize-OverlappingSize)) {
-		std::cout << columnSize << "  " << columnSize_ << std::endl;
+		columnSize_(PermutationSize + (columnSize - PermutationSize) / (PermutationSize - OverlappingSize)*(PermutationSize - OverlappingSize)) {
 		for (unsigned int i = 0; (size_t)i < vecIndexes.size(); i++)
 			indexesPositionsMap.insert(std::make_pair(*(vecIndexes.begin() + i), i));
 		initStructersOfConnectoins();
 	}
-	std::vector<ColumnsPermutation >  operator () (int numberOfAttemptsPerLevel = 2) const {
+
+
+	std::vector<ColumnsPermutation >  operator () (int numberOfAttemptsPerLevel = 1,unsigned int narrowSizeOfSetToFirstOf=100) const {
 		this->numberOfAttemptsPerLevel = numberOfAttemptsPerLevel;
-		return parallelLoop(&SmallPermutationSelector::sofisticateSearching, vecIndexesExt.size());
+		return parallelLoop(&SmallPermutationSelector::sofisticateSearching, vecIndexesExt.size()*narrowSizeOfSetToFirstOf/100);
 	}
-
-
 };
 
 
-template <int PermutationSize,int OverlappingSize, typename ColIndexType, typename PresenceRegisterType  >
-void SmallPermutationSelector<PermutationSize,OverlappingSize, ColIndexType, PresenceRegisterType>::initStructersOfConnectoins() {
+
+template <int PermutationSize, int OverlappingSize, typename ColIndexType, typename PresenceRegisterType  >
+void SmallPermutationSelector<PermutationSize, OverlappingSize, ColIndexType, PresenceRegisterType>::initStructersOfConnectoins() {
 	auto isConnectionOk = [this](const Indexes  indexes) {
 		return indexesPositionsMap.find(indexes) != indexesPositionsMap.end();
 	};
@@ -216,6 +211,7 @@ void SmallPermutationSelector<PermutationSize,OverlappingSize, ColIndexType, Pre
 		}
 		return 0;
 	};
+
 	size_t i = 0, delta = vecIndexesExt.size() / std::thread::hardware_concurrency();
 	for (; i < std::thread::hardware_concurrency() - 1; i++)
 		futures.push_back(std::async(std::launch::async, worker, i*delta, delta));
@@ -226,8 +222,9 @@ void SmallPermutationSelector<PermutationSize,OverlappingSize, ColIndexType, Pre
 	}
 }
 
-template <int PermutationSize,int OverlappingSize, typename ColIndexType, typename PresenceRegisterType  >
-void SmallPermutationSelector<PermutationSize, OverlappingSize,ColIndexType, PresenceRegisterType>::findMissingTailAndAdd(ListPageColumnsPermutations & outList, const std::vector<ColIndexType> & permutation, std::vector<ColIndexType> missing)const
+
+template <int PermutationSize, int OverlappingSize, typename ColIndexType, typename PresenceRegisterType  >
+void SmallPermutationSelector<PermutationSize, OverlappingSize, ColIndexType, PresenceRegisterType>::findMissingTailAndAdd(ListPageColumnsPermutations & outList, const std::vector<ColIndexType> & permutation, std::vector<ColIndexType> missing)const
 {
 	Indexes tem;
 	size_t s = PermutationSize - missing.size();
@@ -239,6 +236,7 @@ void SmallPermutationSelector<PermutationSize, OverlappingSize,ColIndexType, Pre
 			outList.push_back(permWithTail);
 		}
 	};
+
 	if (missing.size() == 1) {
 		tem.back() = missing.front();
 		push_back_tem();
@@ -251,8 +249,9 @@ void SmallPermutationSelector<PermutationSize, OverlappingSize,ColIndexType, Pre
 	}
 }
 
-template <int PermutationSize,int OverlappingSize, typename ColIndexType, typename PresenceRegisterType  >
-void SmallPermutationSelector<PermutationSize,OverlappingSize, ColIndexType, PresenceRegisterType>::findMissingHeadAndAdd(ListPageColumnsPermutations & outList, const std::vector<ColIndexType> & permutation, std::vector<ColIndexType> missing)const
+
+template <int PermutationSize, int OverlappingSize, typename ColIndexType, typename PresenceRegisterType  >
+void SmallPermutationSelector<PermutationSize, OverlappingSize, ColIndexType, PresenceRegisterType>::findMissingHeadAndAdd(ListPageColumnsPermutations & outList, const std::vector<ColIndexType> & permutation, std::vector<ColIndexType> missing)const
 {
 	Indexes tem;
 	size_t s = PermutationSize - missing.size();
@@ -268,18 +267,18 @@ void SmallPermutationSelector<PermutationSize,OverlappingSize, ColIndexType, Pre
 	if (missing.size() == 1) {
 		tem.front() = missing.front();
 		push_back_tem();
-
 	}
 	else {
 		do {
-			std::copy(missing.begin(), missing.end(), tem.begin() );
+			std::copy(missing.begin(), missing.end(), tem.begin());
 			push_back_tem();
 		} while (std::next_permutation(missing.begin(), missing.end()));
 	}
 }
 
-template <int PermutationSize,int OverlappingSize, typename ColIndexType, typename PresenceRegisterType  >
-void SmallPermutationSelector<PermutationSize,OverlappingSize, ColIndexType, PresenceRegisterType>::searchForPageColumnPermutationRight(
+
+template <int PermutationSize, int OverlappingSize, typename ColIndexType, typename PresenceRegisterType  >
+void SmallPermutationSelector<PermutationSize, OverlappingSize, ColIndexType, PresenceRegisterType>::searchForPageColumnPermutationRight(
 	const IndexesExt & el, ListPageColumnsPermutations & outList, GrowingColumnsPermutationCtrl & permutationCtrl)const
 {
 	auto continueDeeper = [&](const IndexesExt& candidate) {
@@ -290,7 +289,6 @@ void SmallPermutationSelector<PermutationSize,OverlappingSize, ColIndexType, Pre
 			}
 			else {
 				outList.push_back(permutationCtrl.getPermutation());
-				
 			}
 		}
 		else
@@ -299,37 +297,38 @@ void SmallPermutationSelector<PermutationSize,OverlappingSize, ColIndexType, Pre
 
 	int counter = 0;
 
-	for (auto & pos : el.connectionsRight)
+	for (auto & pos : el.connections)
 	{
-		auto &candidate = vecIndexesExt[pos];
-		if (permutationCtrl.tryAddRight(candidate)) {
-			counter++;
-			continueDeeper(candidate);
+		if (pos > 0)
+		{
+			auto &candidate = vecIndexesExt[pos - 1];
+			if (permutationCtrl.tryAddRight(candidate)) {
+				counter++;
+				continueDeeper(candidate);
 
-			permutationCtrl.removeLastRight();
-			if (counter >= numberOfAttemptsPerLevel)
-				break;
+				permutationCtrl.removeLastRight();
+				if (counter >= numberOfAttemptsPerLevel)
+					break;
+			}
+		}
+		else
+		{
+			auto &candidate = vecIndexesExt[-pos - 1];
+			if (permutationCtrl.tryAddLeft(candidate)) {
+				counter++;
+				continueDeeper(candidate);
 
+				permutationCtrl.removeLastLeft();
+				if (counter >= numberOfAttemptsPerLevel)
+					break;
+			}
 		}
 	}
-	counter = 0;
-	for (auto & pos : el.connectionsLeft)
-	{
-		auto &candidate = vecIndexesExt[pos];
-		if (permutationCtrl.tryAddLeft(candidate)) {
-			counter++;
-			continueDeeper(candidate);
-
-			permutationCtrl.removeLastLeft();
-			if (counter >= numberOfAttemptsPerLevel)
-				break;
-		}
-	}
-
 }
 
-template <int PermutationSize,int OverlappingSize ,typename ColIndexType, typename PresenceRegisterType  >
-typename SmallPermutationSelector<PermutationSize,OverlappingSize ,ColIndexType, PresenceRegisterType>::ListPageColumnsPermutations SmallPermutationSelector<PermutationSize,OverlappingSize, ColIndexType, PresenceRegisterType>::sofisticateSearching(size_t ixBeg, size_t size)const {
+
+template <int PermutationSize, int OverlappingSize, typename ColIndexType, typename PresenceRegisterType  >
+typename SmallPermutationSelector<PermutationSize, OverlappingSize, ColIndexType, PresenceRegisterType>::ListPageColumnsPermutations SmallPermutationSelector<PermutationSize, OverlappingSize, ColIndexType, PresenceRegisterType>::sofisticateSearching(size_t ixBeg, size_t size)const {
 	ListPageColumnsPermutations retList;
 	for (auto ix = ixBeg, ixEnd = ixBeg + size; ix < ixEnd; ix++) {
 		GrowingColumnsPermutationCtrl permutationCtrl(vecIndexesExt[ix]);
@@ -338,15 +337,17 @@ typename SmallPermutationSelector<PermutationSize,OverlappingSize ,ColIndexType,
 	return retList;
 }
 
-template <int PermutationSize, int OverlappingSize,typename ColIndexType, typename PresenceRegisterType  >
-std::vector<std::vector<ColIndexType>> SmallPermutationSelector<PermutationSize,OverlappingSize ,ColIndexType, PresenceRegisterType>::parallelLoop(ListPageColumnsPermutations(SmallPermutationSelector<PermutationSize, OverlappingSize,ColIndexType, PresenceRegisterType>::*searcher)(size_t, size_t)const, size_t repSize) const {
+
+template <int PermutationSize, int OverlappingSize, typename ColIndexType, typename PresenceRegisterType  >
+std::vector<std::vector<ColIndexType>> SmallPermutationSelector<PermutationSize, OverlappingSize, ColIndexType, PresenceRegisterType>::parallelLoop(ListPageColumnsPermutations(SmallPermutationSelector<PermutationSize, OverlappingSize, ColIndexType, PresenceRegisterType>::*searcher)(size_t, size_t)const, size_t repSize) const {
 	using Futures = std::list < std::future<ListPageColumnsPermutations>>;
 	Futures futures;
 	ListPageColumnsPermutations retList;
-	size_t i = 0, delta = repSize / std::thread::hardware_concurrency();
-	for (; i < std::thread::hardware_concurrency() - 1; i++)
-		futures.push_back(std::async(std::launch::async, searcher, this, i*delta, delta));
-	retList = (this->*searcher)(i*delta, repSize - i*delta);
+	size_t i , delta = repSize / std::thread::hardware_concurrency();
+	size_t size_first = repSize - (std::thread::hardware_concurrency() - 1)*delta;
+	for (i=0; i < std::thread::hardware_concurrency() -1; i++)
+		futures.push_back(std::async(std::launch::async, searcher, this, size_first+i*delta, delta));
+	retList = (this->*searcher)(0, size_first);
 
 	while (futures.size()) {
 		auto rl = futures.front().get();

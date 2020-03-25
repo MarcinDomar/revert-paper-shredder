@@ -24,77 +24,81 @@ SOFTWARE.
 #include "RatingGivers.h"
 #include "SmallPermutationNarrower.h"
 #include "SmallPermutationSelector.h"
+#include <chrono>
+#include <iomanip>
 
 using namespace std;
 
 
-int main_() {
-	std::cout << sizeof(size_t) << "size_t" << std::endl;
-	InitializerOfIndexsNPermutation<4> ini(5);
-	auto f = ini.getFirst();
-	int errors = 0;
-	for (size_t j, i = 0; i < ini.getSizeOfAllPermutations(); i++, ini.initToNext(f)) {
-		auto ix = ini.getIndexes((int)i);
-		for (j = 0; j < 4 && f[j] == ix[j]; j++);
-		if (j != 4)
-			errors++;
-	}
-	std::cout << errors << "errors" << std::endl;
-	int i;
-	std::cin >> i;
-	return 0;
 
-}
-
-int main(int argc, char *argv[])
+template <typename ColIndexType,int CharsSize>
+void simple_case_study(const char *dictionary_file_name,const VectorOfRows & inputStripes,const std::vector<ColIndexType> & correctPermutation)
 {
-	using ColIndex = unsigned char;
-	constexpr int CharsSize =8;
-	constexpr int RatierCharsSize = 10;//Variable used to build dictionaries for scoring small permutaions shoud be at least as beg as CharsSize
-	constexpr int OverlappingSize = 2; //Varliable use in simple arlgorithm which  select small permutation 
+	auto t1 = std::chrono::steady_clock::now();
+	auto getMilliseconds = [&t1] {
+		auto t2 = std::chrono::steady_clock::now();
+		auto d = t2 - t1;
+		t1 = t2;
+		return std::chrono::duration_cast<std::chrono::milliseconds>(d).count();
+	};
 	static_assert(CharsSize % 2 == 0, "CharsSize should be multipication of 2 ");
-	static_assert( OverlappingSize < CharsSize/2 && OverlappingSize>0," OverlappingSize should be even and greater then 0 and smaller then CharsSize");
-	if (argc != 3) {
-		std::cerr << "As first parameter pass path to file with shredded text" << std::endl;
-		std::exit(-1);
-	}
+	getMilliseconds();
+	std::cout << "An attempt  of find the correct order of columns with " <<  CharsSize / 2 << " size of Permutation\n";
+	auto ratingGiver = getRatingGiver<CombinedRatingGiver<CharsSize>>(dictionary_file_name );
+	std::cout << "I've got RatingGiver for sibbling  letters. It took " << getMilliseconds() << " millisecons\n" << std::endl;
 
-	auto inputStripes = getVectorOfRows(argv[1]);
-	std::cout << "input readed " << std::endl;
 
-	auto ratingGiver = getRatingGiver<CombinedRatingGiver<RatierCharsSize>>(argv[2]);
-	std::cout << "I've got RatingGiver for sibbling  letters  " << std::endl;
-	SmallPermutationNarrower<CharsSize,CombinedRatingGiver<RatierCharsSize>, ColIndex> spermutationNarrower(inputStripes,ratingGiver);
-	auto vecIndexes=spermutationNarrower();
-	std::cout << "Narrow "<<(CharsSize/2)<<" from "<<inputStripes.front().size()<<" permutations , finded " <<vecIndexes.size()<<" intersting permutations" << std::endl;
-	SmallPermutationSelector<CharsSize / 2,OverlappingSize, ColIndex> narrowerSelector(vecIndexes,(int)inputStripes.front().size() );
-	auto suggestedPages1 = narrowerSelector(2);
+	SmallPermutationNarrower<CharsSize, CombinedRatingGiver<CharsSize>, ColIndexType> spermutationNarrower(inputStripes, ratingGiver);
+	auto vecIndexes = spermutationNarrower();
+	std::cout << "Narrow " << (CharsSize / 2) << " from " << inputStripes.front().size() << " permutations , finded " << vecIndexes.size() << " intersting permutations.\n It took " << getMilliseconds() << " millisecons\n" << std::endl;
+	SmallPermutationSelector<CharsSize / 2, 0/*OverlappingSize*/, ColIndexType> narrowerSelector0(vecIndexes, (int)inputStripes.front().size());
+	auto suggestedPages0 = narrowerSelector0();
+	auto dur0 = getMilliseconds();
 
-	std::cout << "I've got from algorithm " << suggestedPages1.size() << " from simpler algorithm suggested pages   " << std::endl;
+	SmallPermutationSelector<CharsSize / 2, 1/*OverlappingSize*/, ColIndexType> narrowerSelector1(vecIndexes, (int)inputStripes.front().size());
+	auto suggestedPages1 = narrowerSelector1();
+	auto dur1 = getMilliseconds();
 
-	PermutationRatier< CombinedRatingGiver<RatierCharsSize>> permutationRatier(inputStripes, ratingGiver);
-	auto showResult = [&](auto &suggestedPages) {
+	SmallPermutationSelector<CharsSize / 2, 2/*OverlappingSize*/, ColIndexType> narrowerSelector2(vecIndexes, (int)inputStripes.front().size());
+	auto suggestedPages2 = narrowerSelector1();
+	auto dur2 = getMilliseconds();
+
+	PermutationRatier< CombinedRatingGiver<CharsSize>> permutationRatier(inputStripes, ratingGiver);
+	auto showResult = [&](auto &suggestedPages, auto duration ,int overlapping) {
+
+		std::cout << "Overlapping : " <<overlapping <<" Suggestions : "  << suggestedPages1.size() << "   pages . It took  " << duration << " milliseconds" << std::endl;
 		auto vecScoreIx = permutationRatier(suggestedPages);
+		std::vector < std::string> numerals{ "First","Second", "Third", "Fourth" };
 		if (vecScoreIx.size()) {
+			auto it = numerals.rbegin();
 			for (size_t i = vecScoreIx.size() > 4 ? vecScoreIx.size() - 4 : 0; i < vecScoreIx.size(); i++) {
-			//for (size_t i = 0; i < 4; i++) {
-
-
-
-				auto bestPage = getPageSideFromColumnPermutation(inputStripes, suggestedPages[vecScoreIx[i].ix]);
-				for (auto & row : bestPage)
-					std::cout << row << std::endl;
-				std::cout << "Page scored : " << vecScoreIx[i].score << "\n" << std::endl;
+				bool Ok = std::equal(correctPermutation.begin(),correctPermutation.end(), suggestedPages[vecScoreIx[i].ix].begin());
+				std::cout << std::setw(7) << (*it++) << " place score: " << std::setw(6) << vecScoreIx[i].score << ", position in set " << std::setw(6) << vecScoreIx[i].ix << (Ok ? " Correct Permutatilon" : "") << "\n";
 			}
-			std::cout << " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-
-
+			std::cout << "--------------------------\n";
 		}
 		else {
 			std::cerr << "Nothing to return " << std::endl;
 		}
 	};
-	showResult(suggestedPages1);
+	showResult(suggestedPages0, dur0,0);
+	showResult(suggestedPages1, dur1,1);
+	showResult(suggestedPages2, dur1,2);
+}
+
+int main(int argc, char *argv[])
+{
+	using ColIndex = unsigned char;
+	if (argc != 4) {
+		std::cerr << "As first parameter pass path to file with shredded text" << std::endl;
+		std::exit(-1);
+	}
+
+	auto inputStripesO = getVectorOfRows(argv[1]);
+	auto inputStripes = getLowerVectorOfRows(inputStripesO);
+	auto correctPermutation = getPermutationFromOriginPage<ColIndex>(getPaperSideFromFile(argv[2]), inputStripesO);
+	simple_case_study<ColIndex,6>(argv[3], inputStripes, correctPermutation);
+	simple_case_study<ColIndex,8>(argv[3], inputStripes, correctPermutation);
 
 	int i;
 	std::cin >> i;
