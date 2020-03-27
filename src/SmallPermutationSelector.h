@@ -47,7 +47,8 @@ class SmallPermutationSelector {
 				vecPosScores[i].second = *itScores;
 			}
 			std::sort(vecPosScores.begin(), vecPosScores.end(), [](auto & l, auto &r) { return l.second < r.second; });
-			auto connectionsCopy = connections;
+			auto connectionsCopy = std::move(connections);
+			connections.assign(connectionsCopy.size(), 0);
 			for (size_t i = 0; i < vecPosScores.size(); i++)
 				connections[i] = connectionsCopy[vecPosScores[i].first];
 		}
@@ -104,19 +105,23 @@ class SmallPermutationSelector {
 	};
 
 	class GrowingColumnsPermutationCtrl {
-		std::vector<ColIndexType> permutation;
+		std::unique_ptr<ColIndexType[]> buff;
 		PresenceRegisterType presence_register;
+		unsigned int size_;
+		ColIndexType *beg;
 	public:
-		GrowingColumnsPermutationCtrl(const IndexesExt& indexes) {
-			init(indexes);
+		GrowingColumnsPermutationCtrl(unsigned int colSize,  const IndexesExt& indexes):buff(new ColIndexType[2*colSize-indexes.size()]) {
+			init(colSize,indexes);
+
 		}
 
-		size_t size()const { return permutation.size(); }
+		size_t size()const { return size_; }
 
-		void init(const IndexesExt & indexes) {
-			permutation.clear();
+		void init(unsigned int colSize,const IndexesExt & indexes) {
+			beg = buff.get() + colSize-indexes.size();
+			std::copy(indexes.begin(), indexes.end(), beg);
+			size_ = (unsigned int)indexes.size();
 			presence_register.reset();
-			permutation.insert(permutation.end(), indexes.begin(), indexes.end());
 			presence_register.add(indexes);
 		}
 
@@ -125,8 +130,8 @@ class SmallPermutationSelector {
 			if (!presence_register.isThereCommonPart(newIndexes))
 			{
 				presence_register.add(newIndexes);
-				permutation.insert(permutation.end(), newIndexes.begin(), newIndexes.end());
-
+				std::copy(newIndexes.begin(), newIndexes.end(), beg + size_);
+				size_ += (unsigned int )newIndexes.size();
 				return true;
 			}
 			return false;
@@ -137,26 +142,30 @@ class SmallPermutationSelector {
 
 			if (!presence_register.isThereCommonPart(newIndexes)) {
 				presence_register.add(newIndexes);
-				permutation.insert(permutation.begin(), newIndexes.begin(), newIndexes.end());
+				std::copy(newIndexes.begin(), newIndexes.end(), beg - newIndexes.size());
+				beg -= newIndexes.size();
+				size_ += (unsigned int)newIndexes.size();
 				return true;
 			}
 			return false;
 		}
 		
-		const std::vector<ColIndexType> & getPermutation()const { return permutation; }
+		std::vector<ColIndexType>  getPermutation()const { return std::vector<ColIndexType>(beg, beg + size_);  }
 
 		std::vector<ColIndexType> getMissing(int columnsSize) {
 			return presence_register.getMissingColumns<ColIndexType>(columnsSize);
 		}
 
 		void removeLastRight() {
-			presence_register.subtract(*reinterpret_cast<std::array<ColIndexType, PermutationSize - OverlappingSize>*>(permutation.data() + permutation.size() - PermutationSize + OverlappingSize));
-			permutation.erase(permutation.end() - PermutationSize + OverlappingSize, permutation.end());
+			presence_register.subtract(*reinterpret_cast<std::array<ColIndexType, PermutationSize - OverlappingSize>*>(beg + (size_ - PermutationSize + OverlappingSize)));
+			size_ -= PermutationSize - OverlappingSize;
+
 		}
 
 		void removeLastLeft() {
-			presence_register.subtract(*reinterpret_cast<std::array<ColIndexType, PermutationSize - OverlappingSize>*>(permutation.data()));
-			permutation.erase(permutation.begin(), permutation.begin() + PermutationSize - OverlappingSize);
+			presence_register.subtract(*reinterpret_cast<std::array<ColIndexType, PermutationSize - OverlappingSize>*>(beg));
+			beg+= PermutationSize - OverlappingSize;
+			size_ -= PermutationSize - OverlappingSize;
 		}
 
 	};
@@ -331,7 +340,7 @@ template <int PermutationSize, int OverlappingSize, typename ColIndexType, typen
 typename SmallPermutationSelector<PermutationSize, OverlappingSize, ColIndexType, PresenceRegisterType>::ListPageColumnsPermutations SmallPermutationSelector<PermutationSize, OverlappingSize, ColIndexType, PresenceRegisterType>::sofisticateSearching(size_t ixBeg, size_t size)const {
 	ListPageColumnsPermutations retList;
 	for (auto ix = ixBeg, ixEnd = ixBeg + size; ix < ixEnd; ix++) {
-		GrowingColumnsPermutationCtrl permutationCtrl(vecIndexesExt[ix]);
+		GrowingColumnsPermutationCtrl permutationCtrl(columnSize,vecIndexesExt[ix]);
 		searchForPageColumnPermutationRight(vecIndexesExt[ix], retList, permutationCtrl);
 	}
 	return retList;
