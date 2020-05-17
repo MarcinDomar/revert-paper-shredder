@@ -23,7 +23,7 @@ SOFTWARE.
 #include "utillites.h"
 #include "RatingGivers.h"
 #include "SmallPermutationNarrower.h"
-#include "SmallPermutationSelector.h"
+#include "SelectorColumnPermutations.h"
 #include <chrono>
 #include <iomanip>
 
@@ -32,7 +32,7 @@ using namespace std;
 
 
 template <typename ColIndexType,int CharsSize>
-void simple_case_study(const char *dictionary_file_name,const VectorOfRows & inputStripes,const std::vector<ColIndexType> & correctPermutation)
+void show_algorithm_results_for_parameters(const char *dictionary_file_name,const VectorOfRows & inputStripes,const std::vector<ColIndexType> & correctPermutation)
 {
 	auto t1 = std::chrono::steady_clock::now();
 	auto getMilliseconds = [&t1] {
@@ -51,15 +51,15 @@ void simple_case_study(const char *dictionary_file_name,const VectorOfRows & inp
 	SmallPermutationNarrower<CharsSize, CombinedRatingGiver<CharsSize>, ColIndexType> spermutationNarrower(inputStripes, ratingGiver);
 	auto vecIndexes = spermutationNarrower();
 	std::cout << "Narrow " << (CharsSize / 2) << " from " << inputStripes.front().size() << " permutations , finded " << vecIndexes.size() << " intersting permutations.\n It took " << getMilliseconds() << " millisecons\n" << std::endl;
-	SmallPermutationSelector<CharsSize / 2, 0/*OverlappingSize*/, ColIndexType> narrowerSelector0(vecIndexes, (int)inputStripes.front().size());
+	SelectorOfBestPosssibleColumnPermutations<CharsSize / 2, 0/*OverlappingSize*/, ColIndexType> narrowerSelector0(vecIndexes, (int)inputStripes.front().size());
 	auto suggestedPages0 = narrowerSelector0();
 	auto dur0 = getMilliseconds();
 
-	SmallPermutationSelector<CharsSize / 2, 1/*OverlappingSize*/, ColIndexType> narrowerSelector1(vecIndexes, (int)inputStripes.front().size());
+	SelectorOfBestPosssibleColumnPermutations<CharsSize / 2, 1/*OverlappingSize*/, ColIndexType> narrowerSelector1(vecIndexes, (int)inputStripes.front().size());
 	auto suggestedPages1 = narrowerSelector1();
 	auto dur1 = getMilliseconds();
 
-	SmallPermutationSelector<CharsSize / 2, 2/*OverlappingSize*/, ColIndexType> narrowerSelector2(vecIndexes, (int)inputStripes.front().size());
+	SelectorOfBestPosssibleColumnPermutations<CharsSize / 2, 2/*OverlappingSize*/, ColIndexType> narrowerSelector2(vecIndexes, (int)inputStripes.front().size());
 	auto suggestedPages2 = narrowerSelector1();
 	auto dur2 = getMilliseconds();
 
@@ -97,9 +97,9 @@ int main(int argc, char *argv[])
 	auto inputStripesO = getVectorOfRows(argv[1]);
 	auto inputStripes = getLowerVectorOfRows(inputStripesO);
 	auto correctPermutation = getPermutationFromOriginPage<ColIndex>(getPaperSideFromFile(argv[2]), inputStripesO);
-	simple_case_study<ColIndex,6>(argv[3], inputStripes, correctPermutation);
-	simple_case_study<ColIndex,8>(argv[3], inputStripes, correctPermutation);
-
+	show_algorithm_results_for_parameters<ColIndex,6>(argv[3], inputStripes, correctPermutation);
+	show_algorithm_results_for_parameters<ColIndex,8>(argv[3], inputStripes, correctPermutation);
+	show_algorithm_results_for_parameters<ColIndex,10>(argv[3], inputStripes, correctPermutation);
 	int i;
 	std::cin >> i;
 	return 0;

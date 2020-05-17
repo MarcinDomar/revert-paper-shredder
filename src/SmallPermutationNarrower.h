@@ -111,20 +111,7 @@ std::vector<typename SmallPermutationNarrower<CharsSize,RatierType, ColIndexType
 		}
 		return 1;
 	};
-	using Future = std::future<int>;
-	std::list<Future> futures;
-
-	int size = (int)indexNexter.getSizeOfAllPermutations() / std::thread::hardware_concurrency();
-	size_t i = 0;
-	for (i; i < std::thread::hardware_concurrency() - 1; i++) {
-		futures.push_back(std::async(std::launch::async, worker, (int)i*size, size));
-	}
-	worker((int)i*size, (int)indexNexter.getSizeOfAllPermutations() - size*(int)i);
-
-	while (futures.size()) {
-		futures.front().get();
-		futures.pop_front();
-	}
+	makeWorkParallel(indexNexter.getSizeOfAllPermutations(), worker);
 	return getSortedPermutationsScoredOnGreaterThenZero(cols_scores);
 
 }

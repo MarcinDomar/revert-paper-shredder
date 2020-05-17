@@ -21,7 +21,26 @@ SOFTWARE.
 */
 #include "types.h"
 #include "InitializerOfIndexes.h"
+#include<thread>
+#include<future>
+#include<list>
 
+template <typename Job>
+void  makeWorkParallel(unsigned int workSize, Job && job) {
+	using Futures = std::list < std::future<int>>;
+	Futures futures;
+
+	size_t i, delta = workSize / std::thread::hardware_concurrency();
+	size_t size_first = workSize - (std::thread::hardware_concurrency() - 1)*delta;
+	for (i = 0; i < std::thread::hardware_concurrency() - 1; i++)
+		futures.push_back(std::async(std::launch::async, job, size_first + i*delta, delta));
+
+	while (futures.size()) {
+		futures.front().get();
+
+		futures.pop_front();
+	}
+}
 ListOfRows  readListOfRows(const std::string &filename);
 
 VectorOfRows getVectorOfRows(const std::string &filename);
@@ -139,18 +158,7 @@ std::vector<typename PermutationRatier< PageRatier>::ScoreIx> PermutationRatier<
 		}
 		return 0;
 	};
-	std::list<std::future<int>> futures;
-	result.reserve(vecPermutations.size());
-	size_t i = 0, delta = vecPermutations.size() / std::thread::hardware_concurrency();
-
-	for (; i < std::thread::hardware_concurrency() - 1; i++)
-		futures.push_back(std::async(std::launch::async, job, i*delta, delta));
-	job(i*delta , result.size() - i*delta);
-
-	while (futures.size()) {
-		futures.front().get();
-		futures.pop_front();
-	}
+	makeWorkParallel(vecPermutations.size(), job);
 
 
 	std::sort(result.begin(), result.end());

@@ -44,7 +44,7 @@
     <ClInclude Include="..\..\src\PresenceRegister.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\SmallPermutationSelector.h">
+    <ClInclude Include="..\..\src\SelectorColumnPermutations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

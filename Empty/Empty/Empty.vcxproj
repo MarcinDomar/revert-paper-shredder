@@ -119,7 +119,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\PresenceRegister.h" />
     <ClInclude Include="..\..\src\InitializerOfIndexes.h" />
-    <ClInclude Include="..\..\src\SmallPermutationSelector.h" />
+    <ClInclude Include="..\..\src\SelectorColumnPermutations.h" />
     <ClInclude Include="..\..\src\SmallPermutationNarrower.h" />
     <ClInclude Include="..\..\src\RatingGivers.h" />
     <ClInclude Include="..\..\src\types.h" />
