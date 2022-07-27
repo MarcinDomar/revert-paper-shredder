@@ -27,11 +27,12 @@ path to original text -&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb
 ## Description of my algorithm use to find correct permutation of columns.  
 Algorithm needs parameters:  
 **_CharSize_** - numbers of chars for small permutation  
-**_OverlappingSize_** - number of columns that should be the same at the stage of joining small permutation to find complited permutation.  
-**SmallPermutationNarrower** - generate CharsSize/2 perutataions of columns and gives score for each. Score of permutation is a sum of size of chars which were finded as a part of word from dictionary and negative size of chars which were not finded in any of word fro m dictionary. Only permutations with a score greater than 0 will remain until the next stage, I  call them vecIndexes(vector column indexes P(17,CharSize/2)-   permutation size of all colums and CharsSzie/2).    
-**SelectorOfBestPosssibleColumnPermutations** - Finds set of the complement of the entire permutation (page). For all from vecIndexes as the starting point and tries to attach to the right or left of the page so searched the best-rated permutations from vecIndexes and repeats this step until it finds the complete permutation (page) or runs out of vecIndxes.  
-**PermutationRatier** - Entire permutation are scored similar like small permutation with the difference that algorithm look for words created by permutation in dictionary. The best rated page is the first candidate for correct permutation.  
+**_OverlappingSize_** - number of columns that should be the same at the stage of joining small permutations to find completed permutation.  
+**SmallPermutationNarrower** - generate CharsSize/2 permutations of columns and give a score for each. Score of permutation is a sum of size of chars which were founded as a part of word from dictionary and negative size of chars which were not funded in any of word from dictionary. Only permutations with a score greater than 0 will remain until the next stage, I  call them vecIndexes(vector column indexes P(17,CharSize/2)-   permutation size of all columns and CharsSzie/2).    
+**SelectorOfBestPosssibleColumnPermutations** - Finds a set of the complement of the entire permutation (page). For all from vecIndexes as the starting point and tries to attach to the right or left of the page so searched the best-rated permutations from vecIndexes and repeats this step until it finds the complete permutation (page) or runs out of vecIndxes.  
+**PermutationRatier** - Entire permutation is scored similarly like small permutations with the difference that the algorithm looks for words created by permutation in the dictionary. The best rated page is the first candidate for correct permutation.  
   
 ## Application return 
 search reports for algorithm parameters: CharsSize = {6,8,10} and OverllapingSize ={0,1,2}.  
 Work best for CharsSize=8 and OverlapingSize > 0  
+
